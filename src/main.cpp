@@ -1,20 +1,18 @@
 #include <Arduino.h>
-include <WiFi.h>
+//include <WiFi.h>
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <WiFiClientSecure.h>
 #include "cert.h"
 
-const char * ssid = "home_wifi";
+const char * ssid     = "home_wifi";
 const char * password = "helloworld";
 
 
 String FirmwareVer = {  "0.1" };
-#define URL_fw_Version "https://raw.githubusercontent.com/programmer131/ESP8266_ESP32_SelfUpdate/master/esp32_ota/bin_version.txt"
-#define URL_fw_Bin "https://raw.githubusercontent.com/programmer131/ESP8266_ESP32_SelfUpdate/master/esp32_ota/fw.bin"
+#define URL_fw_Version "https://github.com/kolergy/IoToTa/tree/main/Data/bin_version.txt"
+#define URL_fw_Bin "https://github.com/kolergy/IoToTa/tree/main/Data/fw.bin"
 
-//#define URL_fw_Version "http://cade-make.000webhostapp.com/version.txt"
-//#define URL_fw_Bin "http://cade-make.000webhostapp.com/firmware.bin"
 
 void connect_wifi();
 void firmwareUpdate();
