@@ -4,9 +4,9 @@
 #include <HTTPUpdate.h>
 #include <WiFiClientSecure.h>
 #include "cert.h"
+#include "credentials.h"
 
-const char * ssid     = "home_wifi";
-const char * password = "helloworld";
+
 
 
 String FirmwareVer = {  "0.1" };
@@ -18,16 +18,16 @@ void connect_wifi();
 void firmwareUpdate();
 int FirmwareVersionCheck();
 
-unsigned long previousMillis = 0; // will store last time LED was updated
+unsigned long previousMillis   = 0; // will store last time LED was updated
 unsigned long previousMillis_2 = 0;
-const long interval = 60000;
-const long mini_interval = 1000;
+const    long interval         = 60000;
+const    long mini_interval    = 1000;
+
 void repeatedCall() {
-  static int num=0;
+  static   int  num           = 0;
   unsigned long currentMillis = millis();
   if ((currentMillis - previousMillis) >= interval) {
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;
+    previousMillis = currentMillis;  // save the last time you blinked the LED
     if (FirmwareVersionCheck()) {
       firmwareUpdate();
     }
@@ -38,12 +38,10 @@ void repeatedCall() {
     Serial.print(num++);
     Serial.print(" Active fw version:");
     Serial.println(FirmwareVer);
-   if(WiFi.status() == WL_CONNECTED) 
-   {
+   if(WiFi.status() == WL_CONNECTED) {
        Serial.println("wifi connected");
    }
-   else
-   {
+   else {
     connect_wifi();
    }
   }
@@ -55,11 +53,8 @@ struct Button {
   bool pressed;
 };
 
-Button button_boot = {
-  0,
-  0,
-  false
-};
+Button button_boot = {  0,  0,  false };
+
 /*void IRAM_ATTR isr(void* arg) {
     Button* s = static_cast<Button*>(arg);
     s->numberKeyPresses += 1;
@@ -71,7 +66,6 @@ void IRAM_ATTR isr() {
   button_boot.pressed = true;
 }
 
-
 void setup() {
   pinMode(button_boot.PIN, INPUT);
   attachInterrupt(button_boot.PIN, isr, RISING);
@@ -81,6 +75,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   connect_wifi();
 }
+
 void loop() {
   if (button_boot.pressed) { //to connect wifi via Android esp touch app 
     Serial.println("Firmware update Starting..");
@@ -104,7 +99,6 @@ void connect_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-
 void firmwareUpdate(void) {
   WiFiClientSecure client;
   client.setCACert(rootCACertificate);
@@ -125,15 +119,17 @@ void firmwareUpdate(void) {
     break;
   }
 }
+
 int FirmwareVersionCheck(void) {
   String payload;
-  int httpCode;
-  String fwurl = "";
-  fwurl += URL_fw_Version;
-  fwurl += "?";
-  fwurl += String(rand());
+  int    httpCode = 0;
+  String fwurl    = "";
+  fwurl          += URL_fw_Version;
+  fwurl          += "?";
+  fwurl          += String(rand());
   Serial.println(fwurl);
   WiFiClientSecure * client = new WiFiClientSecure;
+ 
 
   if (client) 
   {
@@ -142,15 +138,12 @@ int FirmwareVersionCheck(void) {
     // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is 
     HTTPClient https;
 
-    if (https.begin( * client, fwurl)) 
-    { // HTTPS      
-      Serial.print("[HTTPS] GET...\n");
-      // start connection and send HTTP header
+    if (https.begin( * client, fwurl)) { // HTTPS      
+      Serial.print("[HTTPS] GET...\n");  // start connection and send HTTP header
       delay(100);
       httpCode = https.GET();
       delay(100);
-      if (httpCode == HTTP_CODE_OK) // if version received
-      {
+      if (httpCode == HTTP_CODE_OK) {  // if version received
         payload = https.getString(); // save received version
       } else {
         Serial.print("error in downloading version file:");
@@ -161,26 +154,17 @@ int FirmwareVersionCheck(void) {
     delete client;
   }
       
-  if (httpCode == HTTP_CODE_OK) // if version received
-  {
+  if (httpCode == HTTP_CODE_OK) {  // if version received
     payload.trim();
     if (payload.equals(FirmwareVer)) {
       Serial.printf("\nDevice already on latest firmware version:%s\n", FirmwareVer);
       return 0;
     } 
-    else 
-    {
+    else {
       Serial.println(payload);
       Serial.println("New firmware detected");
       return 1;
     }
   } 
   return 0;  
-}
-void setup() {
-  // put your setup code here, to run once:
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
 }
