@@ -1,22 +1,20 @@
 #include <Arduino.h>
-//include <WiFi.h>
-#include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <WiFiClientSecure.h>
+#include <ArduinoNvs.h>
+
 #include "cert.h"
-#include "credentials.h"
-
-
-
 
 String FirmwareVer = {  "0.1" };
+static String ssid        = "";
+static String password    = "";
 #define URL_fw_Version "https://github.com/kolergy/IoToTa/tree/main/Data/bin_version.txt"
 #define URL_fw_Bin "https://github.com/kolergy/IoToTa/tree/main/Data/fw.bin"
 
-
+void getCredentials();
 void connect_wifi();
 void firmwareUpdate();
-int FirmwareVersionCheck();
+int  FirmwareVersionCheck();
 
 unsigned long previousMillis   = 0; // will store last time LED was updated
 unsigned long previousMillis_2 = 0;
@@ -55,28 +53,29 @@ struct Button {
 
 Button button_boot = {  0,  0,  false };
 
-/*void IRAM_ATTR isr(void* arg) {
-    Button* s = static_cast<Button*>(arg);
-    s->numberKeyPresses += 1;
-    s->pressed = true;
-}*/
-
 void IRAM_ATTR isr() {
   button_boot.numberKeyPresses += 1;
   button_boot.pressed = true;
 }
 
 void setup() {
-  pinMode(button_boot.PIN, INPUT);
-  attachInterrupt(button_boot.PIN, isr, RISING);
-  Serial.begin(115200);
+  //pinMode(button_boot.PIN, INPUT);
+  //attachInterrupt(button_boot.PIN, isr, RISING);
+  NVS.begin();
+  Serial.begin(9600);
   Serial.print("Active firmware version:");
   Serial.println(FirmwareVer);
+  //NVS.setString("password", "");
+  getCredentials();
   pinMode(LED_BUILTIN, OUTPUT);
   connect_wifi();
+
 }
 
 void loop() {
+
+  delay(2000);
+
   if (button_boot.pressed) { //to connect wifi via Android esp touch app 
     Serial.println("Firmware update Starting..");
     firmwareUpdate();
@@ -84,10 +83,65 @@ void loop() {
   }
   repeatedCall();
 }
+char* getInput() {
+  static char        buf[256];
+  boolean     newD     = false;
+  static byte ndx      = 0;
+  char        endMark  = '\n';
+  char rc;
+  while (newD == false) {
+    if(Serial.available() > 0) {
+      rc = Serial.read();
+      if (rc != endMark && int(rc) !=13) {
+        buf[ndx] = rc;
+        Serial.print(rc);
+        ndx++;
+        if (ndx >= 256) ndx = 256 - 1;
+      } else {
+        buf[ndx] = '\0'; // terminate the string
+        newD     = true;
+      }
+    }
+  }
+  Serial.println("");
+  Serial.println(":" + String(buf) + ":");
+  return buf;
+}
+
+void getCredentials() {
+  bool res = false;
+  Serial.println("GetCredentials:");
+  ssid     = NVS.getString("ssid"    );
+  password = NVS.getString("password");
+  Serial.println("ssid    :" + ssid    +":");
+  Serial.println("password:" + password+":");
+
+  if(ssid == "") {
+    Serial.println("Please enter WiFi SSID:");
+    ssid = String(getInput());
+    res  = NVS.setString("ssid", ssid);
+    if(res) Serial.println("SSID updated");
+  } 
+  if(password == "") {
+    Serial.println("Please enter WiFi password:");
+    password = String(getInput());
+    Serial.println(":" + password + ":");
+    res      = NVS.setString("password", password);
+    if(res) Serial.println("Password updated");
+  } 
+}
 
 void connect_wifi() {
+  int lenS = ssid.length()     + 1; 
+  int lenP = password.length() + 1; 
+  char ss[lenS];
+  char pa[lenP];
+  ssid.toCharArray(    ss, lenS);
+  password.toCharArray(pa, lenP);
   Serial.println("Waiting for WiFi");
-  WiFi.begin(ssid, password);
+  Serial.println(ss);
+  Serial.println(pa);
+  WiFi.begin(ss, pa);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
