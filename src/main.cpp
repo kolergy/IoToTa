@@ -8,8 +8,8 @@
 String FirmwareVer = {  "0.1" };
 static String ssid        = "";
 static String password    = "";
-#define URL_fw_Version "https://github.com/kolergy/IoToTa/tree/main/Data/bin_version.txt"
-#define URL_fw_Bin "https://github.com/kolergy/IoToTa/tree/main/Data/firmware.bin"
+#define URL_fw_Version "https://github.com/kolergy/IoToTa/master/Data/bin_version.txt"
+#define URL_fw_Bin     "https://github.com/kolergy/IoToTa/master/Data/firmware.bin"
 
 void getCredentials();
 void connect_wifi();
@@ -67,6 +67,7 @@ void setup() {
   Serial.println(FirmwareVer);
   //NVS.setString("password", "");
   getCredentials();
+  delay(200);
   pinMode(LED_BUILTIN, OUTPUT);
   connect_wifi();
 
