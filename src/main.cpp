@@ -9,7 +9,7 @@ String FirmwareVer = {  "0.1" };
 static String ssid        = "";
 static String password    = "";
 #define URL_fw_Version "https://github.com/kolergy/IoToTa/tree/main/Data/bin_version.txt"
-#define URL_fw_Bin "https://github.com/kolergy/IoToTa/tree/main/Data/fw.bin"
+#define URL_fw_Bin "https://github.com/kolergy/IoToTa/tree/main/Data/firmware.bin"
 
 void getCredentials();
 void connect_wifi();
