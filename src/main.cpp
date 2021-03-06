@@ -8,8 +8,8 @@
 String FirmwareVer = {  "0.1" };
 static String ssid        = "";
 static String password    = "";
-#define URL_fw_Version "https://github.com/kolergy/IoToTa/master/Data/bin_version.txt"
-#define URL_fw_Bin     "https://github.com/kolergy/IoToTa/master/Data/firmware.bin"
+#define URL_fw_Version "https://github.com/kolergy/IoToTa/blob/master/Data/bin_version.txt"
+#define URL_fw_Bin     "https://github.com/kolergy/IoToTa/blob/master/Data/firmware.bin"
 
 void getCredentials();
 void connect_wifi();
@@ -143,15 +143,17 @@ void connect_wifi() {
   Serial.println(ss);
   Serial.println(pa);
   WiFi.begin(ss, pa);
-  while (WiFi.status() != WL_CONNECTED) {
+  int n = 0;
+  while (WiFi.status() != WL_CONNECTED && n < 10) {
     delay(500);
     Serial.print(".");
   }
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  if(WiFi.status() == WL_CONNECTED) {
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+  }
 }
 
 void firmwareUpdate(void) {
