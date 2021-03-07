@@ -1,5 +1,5 @@
 # IoToTa
-IoT with OTA for ESP32
+Wifi IoT with OTA for the ESP32
 Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
 - Adapted to be used with PlatformIO
 - Adapted to move the heavy lifting in the OATtools library
@@ -8,7 +8,19 @@ Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
   - So they are never included in the program file available in Github 
   - The credentials are stored in the long term memory of the ESP32 (NVS)
 
-Update http Status:
+## Usage
+### Board set-up for OTA
+- partition your board for OAT, this can be done with the Arduino IDE:
+  - In tools setup your board & port
+  - In tools select the partition scheme: minimal SPIFFS (larrge APPS with OTA)  
+  - Upload any sketch like blink & your board will be partitionned
+### Code
+- Add: '#include "OTAtools.h"' at the start of your sketch
+- Add: 'setOTA();' in your 'setup()' function
+- Add: 'checkOTA(true);' in your 'loop()' function
+
+## Errors
+### Update http Status:
 - 200: Success
 - 301: Link permanantly moved
 - 404: File not found
@@ -16,10 +28,10 @@ Update http Status:
 - 418 I'm a teapot (RFC 2324, RFC 7168) (with IoT one never know what can be on the other end)
 - ...
 
-Update errors:
+### Update errors:
 WiFi.status() != WL_CONNECTED -> ESP32 memory not partitionned adequately
 
 
 Global HTTP status list available on Wikipedia:https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
-WARNING work ongoing not yet fully tested
+## WARNING active work ongoing not yet fully stabilised & tested
