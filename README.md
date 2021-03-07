@@ -19,4 +19,4 @@ WiFi.status() != WL_CONNECTED -> ESP32 memory not partitionned adequately
 
 Global HTTP status list available on Wikipedia:https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
-WARNING not yet tested
+WARNING not yet fully tested
