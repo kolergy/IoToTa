@@ -3,6 +3,7 @@ Wifi IoT with OTA for the ESP32
 Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
 - Adapted to be used with PlatformIO
 - Adapted to move the heavy lifting in the OATtools library
+- Some code cleaning
 - Modified to remove the SSID & password from the firmware bin 
   - These will be requested to the user if they are not available 
   - So they are never included in the program file available in Github 
