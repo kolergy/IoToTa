@@ -5,7 +5,7 @@
 
 #include "cert.h"
 
-String FirmwareVer = {  "0.1" };
+String FirmwareVer = {  "0.3" };
 static String ssid        = "";
 static String password    = "";
 #define URL_fw_Version "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/bin_version.txt"
@@ -216,7 +216,7 @@ int FirmwareVersionCheck(void) {
   if (httpCode == HTTP_CODE_OK) {  // if version received
     payload.trim();
     if (payload.equals(FirmwareVer)) {
-      Serial.printf("\nDevice already on latest firmware version:%s\n", FirmwareVer);
+      Serial.printf("\nDevice already running latest firmware version:%s\n", FirmwareVer);
       return 0;
     } 
     else {
