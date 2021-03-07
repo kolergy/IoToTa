@@ -8,8 +8,8 @@
 String FirmwareVer = {  "0.1" };
 static String ssid        = "";
 static String password    = "";
-#define URL_fw_Version "https://github.com/kolergy/IoToTa/blob/master/Data/bin_version.txt"
-#define URL_fw_Bin     "https://github.com/kolergy/IoToTa/blob/master/Data/firmware.bin"
+#define URL_fw_Version "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/bin_version.txt"
+#define URL_fw_Bin     "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/firmware.bin"
 
 void getCredentials();
 void connect_wifi();
@@ -123,6 +123,8 @@ void getCredentials() {
     res  = NVS.setString("ssid", ssid);
     if(res) Serial.println("SSID updated");
   } 
+  Serial.flush();
+  delay(200);
   if(password == "") {
     Serial.println("Please enter WiFi password:");
     password = String(getInput());
