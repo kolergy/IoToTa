@@ -13,12 +13,15 @@ Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
 ### Board set-up for OTA
 - partition your board for OAT, this can be done with the Arduino IDE:
   - In tools setup your board & port
-  - In tools select the partition scheme: minimal SPIFFS (larrge APPS with OTA)  
+  - In tools select the partition scheme: 'minimal SPIFFS (larrge APPS with OTA)'  
   - Upload any sketch like blink & your board will be partitionned
+  - This should work for boards with at least 4Mb flash
+  - You can of course do your own partision by adding new partitioning csv
 ### Code
 - Add: '#include "OTAtools.h"' at the start of your sketch
 - Add: 'setOTA();' in your 'setup()' function
 - Add: 'checkOTA(true);' in your 'loop()' function
+- The set-up of the target url & firmware version are in OTAtools.h & .cpp this will change in future versions to be more practical
 
 ## Errors
 ### Update http Status:
