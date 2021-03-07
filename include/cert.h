@@ -1,7 +1,7 @@
 
 #ifndef CERT_H
-
 #define CERT_H
+
 // digicert root CA certificate for Github
 const char * rootCACertificate = \
   "-----BEGIN CERTIFICATE-----\n"
