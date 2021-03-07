@@ -1,23 +1,19 @@
-#ifndef OATtools_H
-#define OATtools_H
+#pragma once
 
-
-#include <Arduino.h>
-#include <HTTPUpdate.h>
-#include <WiFiClientSecure.h>
 #include <ArduinoNvs.h>
 
 
 
 static String ssid        = "";
 static String password    = "";
+static String FirmwareVer = {  "0.1" };
 
+void setOTA(bool debug=false);
 void getCredentials();
 void connect_wifi();
-void repeatedCall();
+void checkOTA(bool debug=false);
 void firmwareUpdate();
 int  FirmwareVersionCheck();
 
 
 
-#endif

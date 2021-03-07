@@ -8,14 +8,25 @@
 #define URL_fw_Version "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/bin_version.txt"
 #define URL_fw_Bin     "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/firmware.bin"
 
-//String FirmwareVer = {  "0.1" };
-
 unsigned long previousMillis   = 0; // will store last time LED was updated
 unsigned long previousMillis_2 = 0;
 const    long interval         = 30000;
 const    long mini_interval    = 1000;
 
-void checkOAT(bool debug) {
+
+void setOTA(bool debug) {
+  if(debug) {  
+    Serial.print("Active firmware version:");
+    Serial.println(FirmwareVer);
+  }
+  NVS.begin();
+  getCredentials();
+  delay(200);
+  connect_wifi();
+}
+
+
+void checkOTA(bool debug) {
   static   int  num           = 0;
   unsigned long currentMillis = millis();
   if ((currentMillis - previousMillis) >= interval) {
