@@ -1,5 +1,6 @@
 # IoToTa
 Wifi IoT with GitHub OTA for the ESP32 
+
 The ESP32 will connect to wifi then regularely check for new version of the firmware in GitHub, if successfull will perform an OTA update. 
 For security reasons it uses HTTPS & WiFi credentials are not stored in the firmware.
 
