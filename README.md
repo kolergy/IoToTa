@@ -6,7 +6,7 @@ For security reasons it uses HTTPS & WiFi credentials are not stored in the firm
 
 Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
 - Adapted to be used with PlatformIO
-- Adapted to move the heavy lifting in the OATtools library & refactored into the OTA class
+- Adapted to move the heavy lifting in the OTAtools.cpp  & refactored into the OTA class
 - Modified to remove the SSID & password from the firmware bin 
   - The credentials are stored in the long term memory of the ESP32 (NVS)
   - These will be requested through Serial connection if they are not available 
@@ -24,6 +24,11 @@ Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
 - add: OTA object 'OTA ota = OTA(DEVICENAME, FirmwrVer, FirmwrBin, true);' with your settings
 - Add: call 'ota.set();' in your 'setup()' function
 - Add: call 'ota.check();' in your 'loop()' function
+
+### GitHub
+- In the GitHub repository the Data folder holds the firmware number file & the bin file
+- Each time you compile a new version push the bin file to the Data folder then increment the version number
+- TODO: automate that
 
 ## Errors
 ### Update http Status:
