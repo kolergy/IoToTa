@@ -88,9 +88,11 @@ char* OTA::getInput() {               // Get user input from Serial
 
 void OTA::getCredentials() {  // Get credentials from NVS memory if available or request them through serial
   bool res = false;
-    Serial.flush();
   delay(200);
+  while(Serial.available()) Serial.read();
   Serial.println("GetCredentials:");
+  //NVS.setString("ssid"    , "");                 // uncoment these to erase SSID & pass from NVS mem
+  //NVS.setString("password", "");                 // 
   String ssid     = NVS.getString("ssid"    );
   String password = NVS.getString("password");
   Serial.println("ssid    :" + ssid    +":");
@@ -102,8 +104,8 @@ void OTA::getCredentials() {  // Get credentials from NVS memory if available or
     res  = NVS.setString("ssid", ssid);
     if(res) Serial.println("SSID updated");
   } 
-  Serial.flush();
   delay(200);
+  while(Serial.available()) Serial.read();
   if(password == "") {
     Serial.println("Please enter WiFi password:");
     password = String(getInput());

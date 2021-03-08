@@ -13,8 +13,6 @@ OTA ota = OTA(DEVICENAME, FirmwrVer, FirmwrBin, true);  // Creation of theOTA ob
 void setup() {
   Serial.begin(9600);
 
-  //NVS.setString("password", "");
-
   pinMode(LED_BUILTIN, OUTPUT);
   ota.set(FWVERSION);            // Set of the OTA system request through Serial SSID & PS if necessary then connect to WiFi 
 
