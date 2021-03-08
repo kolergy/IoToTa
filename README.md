@@ -26,9 +26,11 @@ Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
 - Add: call 'ota.check();' in your 'loop()' function
 
 ### GitHub
+- To get started fork this repository & try it with your code.
 - In the GitHub repository the Data folder holds the firmware number file & the bin file
 - Each time you compile a new version push the bin file to the Data folder then increment the version number
-- TODO: automate that
+- TODO: Automatically push the code on build & increment version
+
 
 ## Errors
 ### Update http Status:
