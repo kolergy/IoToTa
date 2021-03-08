@@ -1,5 +1,8 @@
 # IoToTa
-Wifi IoT with OTA for the ESP32
+Wifi IoT with GitHub OTA for the ESP32 
+The ESP32 will connect to wifi then regularely check for new version of the firmware in GitHub, if successfull will perform an OTA update. 
+For security reasons it uses HTTPS & WiFi credentials are not stored in the firmware.
+
 Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
 - Adapted to be used with PlatformIO
 - Adapted to move the heavy lifting in the OATtools library & refactored into the OTA class
