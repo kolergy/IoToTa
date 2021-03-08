@@ -62,19 +62,22 @@ void OTA::check() {
 }
 
 char* OTA::getInput() {               // Get user input from Serial
-  static char        buf[256];
+  char        buf[256];
+  static char rtrn[256];
   boolean     newD     = false;
-  static byte ndx      = 0;
+  byte ndx             = 0;
   char        endMark  = '\n';
   char rc;
-  while (newD == false) {
+  //for(int i=0;i<255;i++) buf[i] = 0;
+  //Serial.println(buf);
+  while (newD == false && ndx < 255) {
     if(Serial.available() > 0) {
       rc = Serial.read();
       if (rc != endMark && int(rc) !=13) {
         buf[ndx] = rc;
-        Serial.print(rc);
+        Serial.println(buf[ndx]);
+        //Serial.println(buf);
         ndx++;
-        if (ndx >= 256) ndx = 256 - 1;
       } else {
         buf[ndx] = '\0'; // terminate the string
         newD     = true;
@@ -83,7 +86,8 @@ char* OTA::getInput() {               // Get user input from Serial
   }
   Serial.println("");
   Serial.println(":" + String(buf) + ":");
-  return buf;
+  strncpy(rtrn, buf, 255);
+  return rtrn;
 }
 
 void OTA::getCredentials() {  // Get credentials from NVS memory if available or request them through serial
@@ -133,6 +137,7 @@ void OTA::connect_wifi() {
   while (WiFi.status() != WL_CONNECTED && n < 10) {
     delay(500);
     Serial.print(".");
+    n++;
   }
   if(WiFi.status() == WL_CONNECTED) {
     Serial.println("");
