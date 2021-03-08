@@ -4,7 +4,7 @@ Wifi IoT with GitHub OTA for the ESP32
 The ESP32 will connect to wifi then regularely check for new version of the firmware in GitHub, if successfull will perform an OTA update. 
 For security reasons it uses HTTPS & WiFi credentials are not stored in the firmware.
 
-Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate
+Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate & some inspiration from https://github.com/SensorsIot/ESP32-OTA
 - Adapted to be used with PlatformIO
 - Adapted to move the heavy lifting in the OTAtools.cpp  & refactored into the OTA class
 - Modified to remove the SSID & password from the firmware bin 
