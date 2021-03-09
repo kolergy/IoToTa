@@ -2,6 +2,10 @@
 
 #include <ArduinoNvs.h>
 
+#ifndef LED_BUILTIN
+  #define LED_BUILTIN 2
+#endif
+
 class OTA {  // A class to handle OTA activities
   public:
     OTA(char* deviceNam, char* FirmwrVer, char* FirmwrBin, bool debug=false);
