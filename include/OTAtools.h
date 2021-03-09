@@ -14,7 +14,8 @@ class OTA {  // A class to handle OTA activities
     void connect_wifi();
     void check();
     void firmwareUpdate();
-    int  FirmwareVersionCheck();
+    int  fwVersionCheck();
+    void frqBlink(int t, float f, float r=0.5);
 
   private:
     char* m_deviceNam; 

@@ -39,7 +39,7 @@ void OTA::check() {
   unsigned long currentMillis = millis();
   if ((currentMillis - previousMillis) >= interval) {
     previousMillis = currentMillis;  // save the last time you blinked the LED
-    if (FirmwareVersionCheck()) {
+    if (fwVersionCheck()) {
       firmwareUpdate();
     }
   }
@@ -82,7 +82,7 @@ char* OTA::getInput() {               // Get user input from Serial
         buf[ndx] = '\0'; // terminate the string
         newD     = true;
       }
-    }
+    } else frqBlink(500, 1, 0.2);
   }
   Serial.println("");
   Serial.println(":" + String(buf) + ":");
@@ -103,12 +103,13 @@ void OTA::getCredentials() {  // Get credentials from NVS memory if available or
   Serial.println("password:" + password+":");
 
   if(ssid == "") {
+
     Serial.println("Please enter WiFi SSID:");
     ssid = String(getInput());
     res  = NVS.setString("ssid", ssid);
     if(res) Serial.println("SSID updated");
   } 
-  delay(200);
+  else frqBlink(200, 10, 0.2);
   while(Serial.available()) Serial.read();
   if(password == "") {
     Serial.println("Please enter WiFi password:");
@@ -135,7 +136,7 @@ void OTA::connect_wifi() {
   WiFi.begin(ss, pa);
   int n = 0;
   while (WiFi.status() != WL_CONNECTED && n < 10) {
-    delay(500);
+    frqBlink(500, 5);
     Serial.print(".");
     n++;
   }
@@ -171,7 +172,7 @@ void OTA::firmwareUpdate(void) {
   }
 }
 
-int OTA::FirmwareVersionCheck(void) {
+int OTA::fwVersionCheck(void) {
   String payload;
   int    httpCode = 0;
   String fwurl    = "";
@@ -213,5 +214,30 @@ int OTA::FirmwareVersionCheck(void) {
     }
   } 
   return 0;  
+}
+void OTA::frqBlink(int t, float f, float r) {   // blink the builtin led at a given frequency and a certain on ratio
+  unsigned long t0 = millis();
+  if(f>-0.00001 && f<0.00001) {         // f=0 les solid on
+    digitalWrite(LED_BUILTIN, LOW);
+    while(millis()-t0 < t) yield(); 
+  }   
+  if(f<0) {                             // f<0 led solid off
+    digitalWrite(LED_BUILTIN, HIGH );
+    while(millis()-t0 < t) yield(); 
+  }   
+  else {                                // f>0 led blinking at freq f
+    float         p    = 1/f;                  // half period of the blink
+    long          tt[2] = { long(1000*p*r), long(1000*p*(1-r)) };
+    bool          st   = true;
+    unsigned long tm1  = millis();
+    while(millis()-t0 < t) {
+      unsigned long tn = millis();
+      if(tn-tm1> tt[st]) {
+        tm1 = tn;
+        st  = !st;
+        digitalWrite(LED_BUILTIN, st*HIGH);
+      }
+    }
+  }
 }
 
