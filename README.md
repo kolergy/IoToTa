@@ -32,12 +32,12 @@ Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate & s
 - Each time you compile a new version push the bin file to the Data folder then increment the version number
 - TODO: Automatically push the code on build & increment version
 
-
-## Errors
-### board builtin led status
+## Board builtin led status
 - blink @ 1hz -> please connect to a usb serial monitor & input wifi SSID & pass
 - blink @ 5hz -> trying to coonect to wifi
-- blink fast  -> uploading firmware   
+- blink fast  -> uploading firmware  
+
+## Errors 
 ### Update http Status:
 - 200: Success
 - 301: Link permanantly moved
