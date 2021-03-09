@@ -20,13 +20,14 @@ Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate & s
   - Upload any sketch like blink & your board will be partitionned
 
 ### Code
-- Add: '#include "OTAtools.h"' at the start of your sketch
-- add: OTA object 'OTA ota = OTA(DEVICENAME, FirmwrVer, FirmwrBin, true);' with your settings
-- Add: call 'ota.set();' in your 'setup()' function
-- Add: call 'ota.check();' in your 'loop()' function
+- From PlatformIO open the Iotota project (directory cloned by git) 
+- The '#include "OTAtools.h"' at the start of your sketch link with the OTA functionalities
+- The OTA object 'OTA ota = OTA(DEVICENAME, FirmwrVer, FirmwrBin, true);' is created with your settings
+- The call 'ota.set();' in your 'setup()' function initiate the OTA functionality
+- The call 'ota.check();' in your 'loop()' function will initiate the search for a new firmware every xx seconds
 
 ### GitHub
-- To get started fork this repository & try it with your code.
+- To get started: Fork this repository & try it with your code.
 - In the GitHub repository the Data folder holds the firmware number file & the bin file
 - Each time you compile a new version push the bin file to the Data folder then increment the version number
 - TODO: Automatically push the code on build & increment version
