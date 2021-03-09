@@ -34,6 +34,10 @@ Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate & s
 
 
 ## Errors
+### board builtin led status
+- blink @ 1hz -> please connect to a usb serial monitor & input wifi SSID & pass
+- blink @ 5hz -> trying to coonect to wifi
+- blink fast  -> uploading firmware   
 ### Update http Status:
 - 200: Success
 - 301: Link permanantly moved
