@@ -8,6 +8,7 @@ Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate & s
 - Adapted to be used with PlatformIO
 - Adapted to move the heavy lifting in the OTAtools.cpp  & refactored into the OTA class
 - Added builtin LED blinking depending of the stat-e of the device 
+- Added a debug & a silent mode
 - Modified to remove the SSID & password from the firmware bin 
   - The credentials are stored in the long term memory of the ESP32 (NVS)
   - These will be requested through Serial connection if they are not available 
