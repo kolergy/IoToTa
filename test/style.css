@@ -1,0 +1,39 @@
+body {
+
+    font-size: 16px;
+    font-family: sans-serif;
+    text-align: center;
+
+}
+
+body form :nth-child(n) {
+
+    padding: .5em;
+
+    margin: .5em auto;
+    width: 15em;
+
+    border-radius: .5em;
+
+    display: block;
+
+}
+
+body form :first-child {
+
+    margin-top: 0;
+
+}
+
+body form :last-child {
+
+    margin-bottom: 0;
+
+}
+
+option[value=placeholder] {
+
+    color: rgba(0, 0, 0, .5);
+    font-style: italic;
+
+}
