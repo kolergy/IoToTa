@@ -48,10 +48,12 @@ class OTA {  // A class to handle OTA activities
     int          state;
     int          connectAttempt;
     int          MaxAttempt = 4;
-    int          rssiList[MAX_NUMBER_OF_SSID];
+    int          rssiList[   MAX_NUMBER_OF_SSID ];
+    int          encripType[ MAX_NUMBER_OF_SSID ];
+    String       ssidList[   MAX_NUMBER_OF_SSID ];
     String       ssid;
     String       password;
-    String       ssidList[MAX_NUMBER_OF_SSID];
+
 };
 
 

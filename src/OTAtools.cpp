@@ -27,8 +27,10 @@ OTA::OTA(const char* deviceNam, const char* curFwVer, const char* verFile, const
 }
 
 void OTA::run(void) {  // run a kind of mini state machine
-  Serial.print("Running State:");
-  Serial.println(state);
+  if(m_debug) { 
+    Serial.print("Running State:");
+    Serial.println(state);
+  }
   switch (state) {
    case ST_INIT:
        initialisation();
@@ -54,27 +56,27 @@ void OTA::run(void) {  // run a kind of mini state machine
   }
 }
 
-void OTA::checkChangeST_INIT() {  // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
+void OTA::checkChangeST_INIT() {                        // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
   if(FlagCredentialOk)  state = ST_WIFI_CONNECT;
   else                  state = ST_REQUEST_CREDENTIALS;
 }
 
-void OTA::checkChangeST_REQUEST_CREDENTIALS() {  // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
+void OTA::checkChangeST_REQUEST_CREDENTIALS() {         // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
   if(FlagCredentialOk)  state = ST_WIFI_CONNECT;
   else                  state = ST_REQUEST_CREDENTIALS;
 }
 
-void OTA::checkChangeST_WIFI_CONNECT() {  // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
+void OTA::checkChangeST_WIFI_CONNECT() {               // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
   if(WiFi.status() == WL_CONNECTED) state = ST_RUN;
   else                              state = ST_WIFI_FAIL;
 }
 
-void OTA::checkChangeST_WIFI_FAIL() {  // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
+void OTA::checkChangeST_WIFI_FAIL() {                  // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
   if(connectAttempt > MaxAttempt)   state = ST_REQUEST_CREDENTIALS;
   else                              state = ST_WIFI_CONNECT;
 }
 
-void OTA::checkChange_ST_RUN() { // transition from ST_RUN to: ST_WIFI_FAIL, //
+void OTA::checkChange_ST_RUN() {                       // transition from ST_RUN to: ST_WIFI_FAIL, //
   if(WiFi.status() == WL_CONNECTED) state = ST_RUN;
   else                              state = ST_WIFI_FAIL;
 }
@@ -91,8 +93,7 @@ void OTA::initialisation() {
 
 void OTA::RequestCredentials() {
   scanWifi();
-
-}
+} 
 
 
 
@@ -100,7 +101,7 @@ void OTA::checkUpdate() {
   static   int  num           = 0;
   unsigned long currentMillis = millis();
   if ((currentMillis - previousMillis) >= interval) {
-    previousMillis = currentMillis;  // save the last time you blinked the LED
+    previousMillis = currentMillis;                          // save the last time you blinked the LED
     if (fwVersionCheck()) firmwareUpdate();
   }
   if ((currentMillis - previousMillis_2) >= mini_interval) {
@@ -207,25 +208,31 @@ void OTA::connect_wifi() {
   int lenP = password.length() + 1; 
   char ss[lenS];
   char pa[lenP];
-  ssid.toCharArray(    ss, lenS);
-  password.toCharArray(pa, lenP);
-  Serial.println("Waiting for WiFi");
-  Serial.println(ss);
-  Serial.println(pa);
+  if(m_debug) { 
+    ssid.toCharArray(    ss, lenS);
+    password.toCharArray(pa, lenP);
+    Serial.println("Waiting for WiFi");
+    Serial.println(ss);
+    Serial.println(pa);
+  }
   WiFi.setHostname("IoToTa_01");
   WiFi.begin(ss, pa);
   int n = 0;
   while (WiFi.status() != WL_CONNECTED && n < 10) {
     frqBlink(500, 5);
-    Serial.print(".");
+    if(m_debug) { 
+      Serial.print(".");
+    }
     n++;
   }
-  if(WiFi.status() == WL_CONNECTED) {
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address & host name: ");
-    Serial.println(WiFi.localIP());
-    Serial.println(WiFi.getHostname());
+  if(m_debug) { 
+    if(WiFi.status() == WL_CONNECTED) {
+      Serial.println("");
+      Serial.println("WiFi connected");
+      Serial.println("IP address & host name: ");
+      Serial.println(WiFi.localIP());
+      Serial.println(WiFi.getHostname());
+    }
   }
 }
 
@@ -239,15 +246,15 @@ void OTA::firmwareUpdate(void) {
 
   switch (ret) {
   case HTTP_UPDATE_FAILED:
-    Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
+    if(m_debug) Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
     break;
 
   case HTTP_UPDATE_NO_UPDATES:
-    Serial.println("HTTP_UPDATE_NO_UPDATES");
+    if(m_debug) Serial.println("HTTP_UPDATE_NO_UPDATES");
     break;
 
   case HTTP_UPDATE_OK:
-    Serial.println("HTTP_UPDATE_OK");
+    if(m_debug) Serial.println("HTTP_UPDATE_OK");
     break;
   }
 }
@@ -259,23 +266,24 @@ int OTA::fwVersionCheck(void) {
   fwurl          += m_verFile;
   fwurl          += "?";
   fwurl          += String(rand());
-  Serial.println(fwurl);
+  if(m_debug) Serial.println(fwurl);
   WiFiClientSecure client;
   client.setCACert(rootCACertificate);
 
-  // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is 
-  HTTPClient https;
+  HTTPClient https;   // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is 
 
   if (https.begin( client, fwurl)) {   // HTTPS      
-    Serial.print("[HTTPS] GET...\n");  // start connection and send HTTP header
+      if(m_debug) Serial.print("[HTTPS] GET...\n");  // start connection and send HTTP header
     delay(100);
     httpCode = https.GET();
     delay(100);
     if (httpCode == HTTP_CODE_OK) {    // if version received
       payload = https.getString();     // save received version
     } else {
-      Serial.print("error in downloading version file:");
-      Serial.println(httpCode);
+      if(m_debug) { 
+        Serial.print("error in downloading version file:");
+        Serial.println(httpCode);
+      }
     }
     https.end();
   }
@@ -284,12 +292,14 @@ int OTA::fwVersionCheck(void) {
   if (httpCode == HTTP_CODE_OK) {      // if version received
     payload.trim();
     if (payload.equals(m_curFwVer)) {
-      Serial.printf("\nDevice already running latest firmware version:%s\n", (char*)(m_curFwVer));
+        if(m_debug) Serial.printf("\nDevice already running latest firmware version:%s\n", (char*)(m_curFwVer));
       return 0;
     } 
     else {
-      Serial.println(payload);
-      Serial.println("New firmware detected");
+      if(m_debug) { 
+        Serial.println(payload);
+        Serial.println("New firmware detected");
+      }
       return 1;
     }
   } 
@@ -297,40 +307,36 @@ int OTA::fwVersionCheck(void) {
 }
 void OTA::scanWifi() {
   // adapted from https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiScan/WiFiScan.ino
+    String s;
+    char ch[100];
+    WiFi.mode(WIFI_STA);                        // Set WiFi to station mode 
+    WiFi.disconnect();                          // disconnect from an AP if it was previously connected
+    delay(100); 
 
-    // Set WiFi to station mode and disconnect from an AP if it was previously connected
-    WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
-    delay(100);
-
-   
-    Serial.println("scan start");         // WiFi.scanNetworks will return the number of networks found
-    int n = WiFi.scanNetworks();
-    Serial.println("scan done");
-    if (n == 0)  Serial.println("no networks found"); 
+    if(m_debug) Serial.println("scan start");        
+    int n = WiFi.scanNetworks();                // WiFi.scanNetworks will return the number of networks found
+    if(m_debug) {
+      Serial.println("scan done");
+      if (n == 0)  Serial.println("no networks found"); 
+    }
     else {
+      if(m_debug) {
         Serial.print(n);
         Serial.println(" networks found");
         if(n > MAX_NUMBER_OF_SSID) Serial.println("WARNING: more SSID than storage");
+      }
         n = min(n,MAX_NUMBER_OF_SSID);
-        for (int i = 0; i < n; ++i) {     // Print SSID and RSSI for each network found
-            //Serial.printf("%d: %s (%d)", (i + 1), WiFi.SSID(i), WiFi.RSSI(i));
-            ssidList[i] = WiFi.SSID(i);
-            rssiList[i] = WiFi.RSSI(i);
-            Serial.print(i + 1);
-            Serial.print(": ");
-            Serial.print(ssidList[i]);
-            Serial.print(" (");
-            Serial.print(rssiList[i]);
-            Serial.print(")");
-            Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_OPEN)?" ":"*");
-            delay(10);
+        for (int i = 0; i < n; ++i) {           // Print SSID and RSSI for each network found
+            ssidList[i]   = WiFi.SSID(i);
+            rssiList[i]   = WiFi.RSSI(i);
+            encripType[i] = WiFi.encryptionType(i);
+
+            WiFi.SSID(i).toCharArray(ch,99);
+            if(m_debug) Serial.printf("%d: %s [%d], Crypto:%d\n", (i + 1), ch, rssiList[i], encripType[i]);
         }
     }
     Serial.println("");
-
 }
-
 
 void OTA::frqBlink(int t, float f, float r) {   // blink the builtin led at a given frequency and a certain on ratio
   unsigned long t0 = millis();
