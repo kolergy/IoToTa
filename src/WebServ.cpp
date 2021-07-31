@@ -22,7 +22,7 @@ void Wifi_AP_setup() {
   IPAddress IP = WiFi.softAPIP(); 
   Serial.print("AP IP address: ");
   Serial.println(IP);
-  
+     
   server.begin();
 }
 
@@ -53,11 +53,11 @@ void serve(){
             if (header.indexOf("GET /26/on") >= 0) {
               Serial.println("LED on");
               outputLedState = "on";
-              digitalWrite(ledPin, LOW);
+              //digitalWrite(ledPin, LOW);
             } else if (header.indexOf("GET /26/off") >= 0) {
               Serial.println("LED off");
               outputLedState = "off";
-              digitalWrite(ledPin, HIGH);
+              //digitalWrite(ledPin, HIGH);
             }
             
             // Display the HTML web page
