@@ -6,7 +6,7 @@
 #include "OTAtools.h"
 #include "cert.h"
 
-// the tools to do OTA
+// the tools to do OTA for the IoT
 
 unsigned long previousMillis   =     0; // will store last time LED was updated
 unsigned long previousMillis_2 =     0;
