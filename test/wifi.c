@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #define HTML_LEN 29
 
-char** html = {
+const char** html = {
     "<!DOCTYPE html>",
     "<html lang=\"fr-FR\">",
     "<head>",

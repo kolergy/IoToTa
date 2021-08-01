@@ -7,19 +7,6 @@
 #include <WiFi.h>
 #include <WiFiAP.h>
 
-// Replace with your network credentials
-const char* ssid     = "IoTOtA-Access-Point";    // Replace with your preffered credentials
-const char* password = NULL;
-IPAddress   local_IP(192,168,1,1);
-IPAddress   gateway(192,168,255,255);
-IPAddress   subnet(255,255,255,0);
-
-WiFiServer  server(80);             // Set web server port number to 80
-String      header;                 // Variable to store the HTTP request
-String      outputLedState = "off"; // Auxiliar variables to store the current output state
-
-uint8_t     ledPin     =  5;
-uint8_t     batteryPin = 35;
 
 
 void setup() {

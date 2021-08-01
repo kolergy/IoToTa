@@ -315,10 +315,10 @@ void OTA::scanWifi() {
 
     if(m_debug) Serial.println("scan start");        
     int n = WiFi.scanNetworks();                // WiFi.scanNetworks will return the number of networks found
-    if(m_debug) {
+    //if(m_debug) {
       Serial.println("scan done");
       if (n == 0)  Serial.println("no networks found"); 
-    }
+    //}
     else {
       if(m_debug) {
         Serial.print(n);
@@ -332,7 +332,8 @@ void OTA::scanWifi() {
             encripType[i] = WiFi.encryptionType(i);
 
             WiFi.SSID(i).toCharArray(ch,99);
-            if(m_debug) Serial.printf("%d: %s [%d], Crypto:%d\n", (i + 1), ch, rssiList[i], encripType[i]);
+            //if(m_debug) 
+            Serial.printf("%d: %s [%d], Crypto:%d\n", (i + 1), ch, rssiList[i], encripType[i]);
         }
     }
     Serial.println("");
