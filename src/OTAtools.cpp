@@ -6,7 +6,7 @@
 #include "OTAtools.h"
 #include "cert.h"
 
-// the tools to do OTA for the IoT
+// The tools to do OTA for the IoT including an accesspoint & webserver to select wifi ssid & insert password
 
 unsigned long previousMillis   =     0; // will store last time LED was updated
 unsigned long previousMillis_2 =     0;
