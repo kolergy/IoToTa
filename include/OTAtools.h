@@ -14,7 +14,6 @@
 #define ST_WIFI_FAIL           3
 #define ST_RUN                 4
 
-
 class OTA {  // A class to handle OTA activities
   public:
     OTA(const char* deviceNam, const char* curFwVer, const char* FirmwrVer, const char* FirmwrBin, bool debug=false);
@@ -49,10 +48,11 @@ class OTA {  // A class to handle OTA activities
     int          connectAttempt;
     int          MaxAttempt = 4;
     int          rssiList[   MAX_NUMBER_OF_SSID ];
-    int          encripType[ MAX_NUMBER_OF_SSID ];
+    const char*  encripType[ MAX_NUMBER_OF_SSID ];
     String       ssidList[   MAX_NUMBER_OF_SSID ];
     String       ssid;
     String       password;
+
 
 };
 

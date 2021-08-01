@@ -13,6 +13,13 @@ unsigned long previousMillis_2 =     0;
 const    long interval         = 30000;
 const    long mini_interval    =  1000;
 
+                             //        0                     1                  2               3            4            
+static const char *ST_Names[]  = {"Initialisation", "Request Credentials", "WiFi Connect", "WiFi Failed", "Runnng"};
+static const int  nST_Names    = 5;
+                             //     0      1        2           3            4                5               6          7          8           9     
+static const char *WiFiCrypt[] = {"Open", "WEP", "WPA PSK", "WPA2 PSK", "WPA WPA2 PSK", "WPA2 Enterprise", "Unknown", "Unknown", "Unknown",  "Unknown"};
+static const int  nWiFiCrypt   = 10;
+
 OTA::OTA(const char* deviceNam, const char* curFwVer, const char* verFile, const char* firmwrBin, bool debug) {
   m_deviceNam      = deviceNam;
   m_verFile        = verFile;
@@ -27,9 +34,10 @@ OTA::OTA(const char* deviceNam, const char* curFwVer, const char* verFile, const
 }
 
 void OTA::run(void) {  // run a kind of mini state machine
+  Serial.flush();
   if(m_debug) { 
-    Serial.print("Running State:");
-    Serial.println(state);
+     if(state<=nST_Names) Serial.printf("\nState:%2d - %20s\n", state, ST_Names[state]);
+     else Serial.printf("WARNING State:%2d - Unknown\n", state);
   }
   switch (state) {
    case ST_INIT:
@@ -305,43 +313,71 @@ int OTA::fwVersionCheck(void) {
   } 
   return 0;  
 }
+
+/* 
+char* get_encryption_type(wifi_auth_mode_t encryptionType) {
+    switch (encryptionType) {
+        case (WIFI_AUTH_OPEN):
+            return "Open";
+        case (WIFI_AUTH_WEP):
+            return "WEP";
+        case (WIFI_AUTH_WPA_PSK):
+            return "WPA_PSK";
+        case (WIFI_AUTH_WPA2_PSK):
+            return "WPA2_PSK";
+        case (WIFI_AUTH_WPA_WPA2_PSK):
+            return "WPA_WPA2_PSK";
+        case (WIFI_AUTH_WPA2_ENTERPRISE):
+            return "WPA2_ENTERPRISE";
+        default : 
+            return "Unknown encription";
+    }
+}
+*/
+
 void OTA::scanWifi() {
   // adapted from https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiScan/WiFiScan.ino
-    String s;
-    char ch[100];
-    WiFi.mode(WIFI_STA);                        // Set WiFi to station mode 
-    WiFi.disconnect();                          // disconnect from an AP if it was previously connected
-    delay(100); 
+  String s;
+  char ch[100];
+  WiFi.mode(WIFI_STA);                        // Set WiFi to station mode 
+  WiFi.disconnect();                          // disconnect from an AP if it was previously connected
+  delay(100); 
 
-    if(m_debug) Serial.println("scan start");        
-    int n = WiFi.scanNetworks();                // WiFi.scanNetworks will return the number of networks found
-    //if(m_debug) {
-      Serial.println("scan done");
-      if (n == 0)  Serial.println("no networks found"); 
-    //}
-    else {
-      if(m_debug) {
-        Serial.print(n);
-        Serial.println(" networks found");
-        if(n > MAX_NUMBER_OF_SSID) Serial.println("WARNING: more SSID than storage");
-      }
-        n = min(n,MAX_NUMBER_OF_SSID);
-        for (int i = 0; i < n; ++i) {           // Print SSID and RSSI for each network found
-            ssidList[i]   = WiFi.SSID(i);
-            rssiList[i]   = WiFi.RSSI(i);
-            encripType[i] = WiFi.encryptionType(i);
-
-            WiFi.SSID(i).toCharArray(ch,99);
-            //if(m_debug) 
-            Serial.printf("%d: %s [%d], Crypto:%d\n", (i + 1), ch, rssiList[i], encripType[i]);
-        }
+  if(m_debug) Serial.println("scan start");        
+  int n = WiFi.scanNetworks();                // WiFi.scanNetworks will return the number of networks found
+  if(m_debug) Serial.println("scan done");
+  if (n == 0) {
+    if(m_debug) Serial.println("no networks found"); 
+  } else {
+    if(m_debug) {
+      Serial.print(n);
+      Serial.println(" networks found");
+      if(n > MAX_NUMBER_OF_SSID) Serial.println("WARNING: more SSID than storage");
     }
-    Serial.println("");
+    n = min(n,MAX_NUMBER_OF_SSID);
+    for (int i = 0; i < n; ++i) {           // Print SSID and RSSI for each network found
+      ssidList[i]   = WiFi.SSID(i);
+      rssiList[i]   = WiFi.RSSI(i);
+      wifi_auth_mode_t cry = WiFi.encryptionType(i);
+      //Serial.println(i);
+      //Serial.println(get_encryption_type((wifi_auth_mode_t)i));
+      if(cry<=nWiFiCrypt) encripType[i] = WiFiCrypt[cry];
+      else {
+        encripType[i] = "Out of Bounds";
+        if(m_debug) Serial.println("WARNING Crypto unknown"); 
+      }
+      if(m_debug) {
+        ssidList[i].toCharArray(ch,99);
+        Serial.printf("%3d: %20s [%3d], Crypto:%16s\n", (i + 1), ch, rssiList[i], encripType[i]);
+      }
+    }
+  }
+  if(m_debug) Serial.println("");
 }
 
 void OTA::frqBlink(int t, float f, float r) {   // blink the builtin led at a given frequency and a certain on ratio
   unsigned long t0 = millis();
-  if(f>-0.00001 && f<0.00001) {                 // f=0 les solid on
+  if(f>-0.00001 && f<0.00001) {                 // f=0 led solid on
     digitalWrite(LED_BUILTIN, LOW);
     while(millis()-t0 < t) yield(); 
   }   

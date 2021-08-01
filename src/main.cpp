@@ -25,7 +25,7 @@ double ReadVoltage(byte pin){  // From: https://github.com/G6EJD/ESP32-ADC-Accur
 
 void setup() {
   Serial.begin(9600);
-
+  Serial.flush();
   pinMode(LED_BUILTIN, OUTPUT);
   ota.run();            // Set of the OTA system request through Serial SSID & PS if necessary then connect to WiFi 
   //PubSubClient client(WiFi);
