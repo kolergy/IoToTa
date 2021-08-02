@@ -23,8 +23,8 @@ unsigned long previousMillis_2 =     0;
 const    long interval         = 30000;
 const    long mini_interval    =  1000;
 
-                             //        0                     1                  2               3            4            
-static const char *ST_Names[]  = {"Initialisation", "Request Credentials", "WiFi Connect", "WiFi Failed", "Runnng"};
+                             //       0            1               2               3                 4            
+static const char *ST_Names[]  = {"Runnng", "WiFi Connect", "Initialisation", "WiFi Failed", "Request Credentials" };
 static const int  nST_Names    = 5;
                              //     0      1        2           3            4                5               6          7          8           9     
 static const char *WiFiCrypt[] = {"Open", "WEP", "WPA PSK", "WPA2 PSK", "WPA WPA2 PSK", "WPA2 Enterprise", "Unknown", "Unknown", "Unknown",  "Unknown"};

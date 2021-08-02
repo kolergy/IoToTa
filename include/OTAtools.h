@@ -9,11 +9,11 @@
 
 #define MAX_NUMBER_OF_AP      50  // Maximum number of access points
 
-#define ST_INIT                0
-#define ST_REQUEST_CREDENTIALS 1
-#define ST_WIFI_CONNECT        2
+#define ST_RUN                 0
+#define ST_WIFI_CONNECT        1
+#define ST_INIT                2
 #define ST_WIFI_FAIL           3
-#define ST_RUN                 4
+#define ST_REQUEST_CREDENTIALS 4
 
 #ifndef S_AP_INFO
   #define S_AP_INFO

@@ -3,7 +3,7 @@
   #define CERT_H
 
   // digicert root CA certificate for Github
-  const char * rootCACertificate = \
+  const char* rootCACertificate = \
     "-----BEGIN CERTIFICATE-----\n"
   "MIIDxTCCAq2gAwIBAgIQAqxcJmoLQJuPC3nyrkYldzANBgkqhkiG9w0BAQUFADBs\n"
   "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n"
