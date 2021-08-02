@@ -3,8 +3,18 @@
 #include <WiFiClientSecure.h>
 #include <string>
 
-#include "OTAtools.h"
-#include "cert.h"
+
+#ifndef CERT_H
+  #include "cert.h"
+#endif // CERT_H
+
+#ifndef OTA_TOOLS
+  #include "OTAtools.h"
+#endif // OTA_TOOLS
+
+#ifndef WEB_SERV
+  #include "WebServ.h"
+#endif // WEB_SERV
 
 // The tools to do OTA for the IoT including an accesspoint & webserver to select wifi ssid & insert password
 
@@ -36,8 +46,8 @@ OTA::OTA(const char* deviceNam, const char* curFwVer, const char* verFile, const
 void OTA::run(void) {  // run a kind of mini state machine
   Serial.flush();
   if(m_debug) { 
-     if(state<=nST_Names) Serial.printf("\nState:%2d - %20s\n", state, ST_Names[state]);
-     else Serial.printf("WARNING State:%2d - Unknown\n", state);
+     if(state<=nST_Names) Serial.printf("\nState%2d:%20s\n", state, ST_Names[state]);
+     else Serial.printf("WARNING State%2d: Unknown\n", state);
   }
   switch (state) {
    case ST_INIT:
@@ -54,7 +64,7 @@ void OTA::run(void) {  // run a kind of mini state machine
        break;
    case ST_WIFI_FAIL:
        checkChangeST_WIFI_FAIL();
-       scanWifi();
+       //scanWifi();
        break;   
    case ST_RUN:
        checkChange_ST_RUN();
@@ -70,7 +80,7 @@ void OTA::checkChangeST_INIT() {                        // transition from ST_WI
 }
 
 void OTA::checkChangeST_REQUEST_CREDENTIALS() {         // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
-  if(FlagCredentialOk)  state = ST_WIFI_CONNECT;
+  if(FlagCredentialOk)  state = ST_INIT;
   else                  state = ST_REQUEST_CREDENTIALS;
 }
 
@@ -80,7 +90,8 @@ void OTA::checkChangeST_WIFI_CONNECT() {               // transition from ST_WIF
 }
 
 void OTA::checkChangeST_WIFI_FAIL() {                  // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
-  if(connectAttempt > MaxAttempt)   state = ST_REQUEST_CREDENTIALS;
+  if(m_debug) Serial.printf("checkChangeST_WIFI_FAIL connectAttempt: %d / MaxAttempt: %d\n", connectAttempt, MaxAttempt); 
+  if(connectAttempt >= MaxAttempt)   state = ST_REQUEST_CREDENTIALS;
   else                              state = ST_WIFI_CONNECT;
 }
 
@@ -90,20 +101,73 @@ void OTA::checkChange_ST_RUN() {                       // transition from ST_RUN
 }
 
 void OTA::initialisation() {
-  if(m_debug) {  
-    Serial.print("Active firmware version:");
-    Serial.println(m_curFwVer);
-    Serial.print("Collecting wifi credentials from NVS memory");
-  }
+  if(m_debug) Serial.printf("Active firmware version: %s, Collecting wifi credentials from NVS memory\n", m_curFwVer);
   NVS.begin();
   getCredentialsFromNVS();
 }
 
 void OTA::RequestCredentials() {
-  scanWifi();
+  bool resS        = false;
+  bool resP        = false;
+  int      nResult = 2; // [0]:SSID, [1]:Pass
+  String*  result  = new String[nResult];
+  result[0]        = "";
+  result[1]        = "";
+  APInforations newCred;
+  newCred.ssid     = "";
+  newCred.password = "";
+  //if(Serial) {                 // if user is connected via serial request ia serial
+  if(false) {                    // test credential request via the wifi AP with serial connected
+    if(m_debug) Serial.printf("Serial is availabe\n"); 
+    delay(200);
+    Serial.println("Requesting the credentials via Serial:");
+    while(Serial.available()) Serial.read();     // clear anything on the serial input
+    if(newCred.ssid == "") {
+      Serial.println("Please enter WiFi SSID:");
+      newCred.ssid = String(getInput());
+      resS         = NVS.setString("ssid", newCred.ssid);
+      if(resS) Serial.println("SSID updated");
+    } 
+
+    while(Serial.available()) Serial.read();    // clear anything on the serial input
+    if(newCred.password == "") {
+      Serial.println("Please enter WiFi password:");
+      newCred.password = String(getInput());
+      resP             = NVS.setString("password", newCred.password);
+      Serial.println(":" + newCred.password + ":");
+      if(resP) Serial.println("Password updated");
+    }
+    if(resS && resP) {
+      Serial.printf("Credentials successfuly updated\n"); 
+      FlagCredentialOk = true;
+    }
+  } else {            // Serial is not available seting up a wifi accesspoint to request credentials 
+    if(m_debug) Serial.println("Scanning the wifi to generate list for the AP");
+    scanWifi();
+    int nInp = 2;
+    //inputs   = new String[nAP][nInp];
+    inputs = new String*[nAP];
+    for(int i = 0; i < nAP; ++i) inputs[i] = new String[nInp];
+
+    if(m_debug) Serial.println("Starting the AP");
+    WIFI_AP_Serv AP = WIFI_AP_Serv();
+    AP.setup();
+    do {
+      AP.serve(inputs, nAP, nInp, result, nResult);
+      //delay(1000);
+    } while(result[0] == "" || result[1] == "" );
+    newCred.ssid     = result[0];
+    newCred.password = result[1];
+    resS             = NVS.setString("ssid", newCred.ssid);
+    Serial.print(":" + newCred.ssid + ":");
+    if(resS) Serial.println(" SSID updated");
+    resP             = NVS.setString("password", newCred.password);
+    Serial.print(":" + newCred.password + ":");
+    if(resP) Serial.println(" Password updated");
+    delete [] result;                                  // Cean up the mess
+    for(int i = 0; i < nAP; ++i) delete [] inputs[i];  // Cean up the mess
+  }
 } 
-
-
 
 void OTA::checkUpdate() {
   static   int  num           = 0;
@@ -157,6 +221,8 @@ char* OTA::getInput() {               // Get user input from Serial
 }
 
 void OTA::getCredentialsFromNVS() {  // Get credentials from NVS memory if available or request them through serial
+  //NVS.setString("ssid"    , "");                   // erase SSID & pass from NVS mem
+  //NVS.setString("password", "");                   // 
   ssid     = NVS.getString("ssid"    );
   password = NVS.getString("password");
   if(ssid != "") FlagCredentialOk = true;
@@ -179,68 +245,31 @@ void OTA::clearCredentials() {
   }
 }
 
-void OTA::getCredentials() {  // Get credentials from NVS memory if available or request them through serial
-  bool res = false;
-  delay(200);
-  while(Serial.available()) Serial.read();
-  Serial.println("GetCredentials:");
-  //NVS.setString("ssid"    , "");                 // uncoment these to erase SSID & pass from NVS mem
-  //NVS.setString("password", "");                 // 
-  String ssid     = NVS.getString("ssid"    );
-  String password = NVS.getString("password");
-  Serial.println("ssid    :" + ssid    +":");
-  Serial.println("password:" + password+":");
-
-  if(ssid == "") {
-    Serial.println("Please enter WiFi SSID:");
-    ssid = String(getInput());
-    res  = NVS.setString("ssid", ssid);
-    if(res) Serial.println("SSID updated");
-  } 
-  else frqBlink(200, 10, 0.2);
-
-  while(Serial.available()) Serial.read();
-  if(password == "") {
-    Serial.println("Please enter WiFi password:");
-    password = String(getInput());
-    Serial.println(":" + password + ":");
-    res      = NVS.setString("password", password);
-    if(res) Serial.println("Password updated");
-  } 
-}
 
 void OTA::connect_wifi() {
-  String ssid     = NVS.getString("ssid"    );
-  String password = NVS.getString("password");
   int lenS = ssid.length()     + 1; 
   int lenP = password.length() + 1; 
   char ss[lenS];
   char pa[lenP];
-  if(m_debug) { 
-    ssid.toCharArray(    ss, lenS);
-    password.toCharArray(pa, lenP);
-    Serial.println("Waiting for WiFi");
-    Serial.println(ss);
-    Serial.println(pa);
-  }
-  WiFi.setHostname("IoToTa_01");
+  ssid.toCharArray(    ss, lenS);
+  password.toCharArray(pa, lenP);
+  if(m_debug) Serial.printf("Waiting for WiFi - SSID: %s Pass: %s\n", ss, pa); 
+
+  WiFi.setHostname(m_deviceNam);
   WiFi.begin(ss, pa);
   int n = 0;
   while (WiFi.status() != WL_CONNECTED && n < 10) {
     frqBlink(500, 5);
-    if(m_debug) { 
-      Serial.print(".");
-    }
+    if(m_debug) Serial.print(".");
     n++;
   }
-  if(m_debug) { 
-    if(WiFi.status() == WL_CONNECTED) {
-      Serial.println("");
-      Serial.println("WiFi connected");
-      Serial.println("IP address & host name: ");
-      Serial.println(WiFi.localIP());
-      Serial.println(WiFi.getHostname());
-    }
+  
+  if(WiFi.status() == WL_CONNECTED) {
+    if(m_debug) Serial.printf("\nWiFi successfully connected to: %s after %d retries, local IP: %d.%d.%d.%d, Host Name: %s\n", ss, n, WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3], WiFi.getHostname()); 
+    connectAttempt=0;
+  } else {
+    if(m_debug) Serial.printf("\nWiFi Failed to connect to: %s after %d retries\n", ss, n);
+    connectAttempt++; 
   }
 }
 
@@ -314,61 +343,42 @@ int OTA::fwVersionCheck(void) {
   return 0;  
 }
 
-/* 
-char* get_encryption_type(wifi_auth_mode_t encryptionType) {
-    switch (encryptionType) {
-        case (WIFI_AUTH_OPEN):
-            return "Open";
-        case (WIFI_AUTH_WEP):
-            return "WEP";
-        case (WIFI_AUTH_WPA_PSK):
-            return "WPA_PSK";
-        case (WIFI_AUTH_WPA2_PSK):
-            return "WPA2_PSK";
-        case (WIFI_AUTH_WPA_WPA2_PSK):
-            return "WPA_WPA2_PSK";
-        case (WIFI_AUTH_WPA2_ENTERPRISE):
-            return "WPA2_ENTERPRISE";
-        default : 
-            return "Unknown encription";
-    }
-}
-*/
-
 void OTA::scanWifi() {
-  // adapted from https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiScan/WiFiScan.ino
-  String s;
-  char ch[100];
+  // inspired from https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiScan/WiFiScan.ino
+  //String s;
+
   WiFi.mode(WIFI_STA);                        // Set WiFi to station mode 
   WiFi.disconnect();                          // disconnect from an AP if it was previously connected
   delay(100); 
 
-  if(m_debug) Serial.println("scan start");        
-  int n = WiFi.scanNetworks();                // WiFi.scanNetworks will return the number of networks found
-  if(m_debug) Serial.println("scan done");
-  if (n == 0) {
-    if(m_debug) Serial.println("no networks found"); 
+  if(m_debug) Serial.println("Scan start");        
+  nAP = WiFi.scanNetworks();                  // WiFi.scanNetworks will return the number of networks access points found
+  if(m_debug) Serial.println("Scan completed");
+  if (nAP == 0) {
+    if(m_debug) Serial.println("No networks found"); 
   } else {
     if(m_debug) {
-      Serial.print(n);
-      Serial.println(" networks found");
-      if(n > MAX_NUMBER_OF_SSID) Serial.println("WARNING: more SSID than storage");
+      Serial.printf("Scan identified %d networks\n", nAP);
+      if(nAP > MAX_NUMBER_OF_AP) Serial.println("WARNING: more SSID than storage");
     }
-    n = min(n,MAX_NUMBER_OF_SSID);
-    for (int i = 0; i < n; ++i) {           // Print SSID and RSSI for each network found
-      ssidList[i]   = WiFi.SSID(i);
-      rssiList[i]   = WiFi.RSSI(i);
+    nAP = min(nAP, MAX_NUMBER_OF_AP);
+    for (int i = 0; i < nAP; ++i) {           // Print SSID and RSSI for each network found
+      APList[i].ssid          = WiFi.SSID(i);
+      APList[i].rssi          = WiFi.RSSI(i);
       wifi_auth_mode_t cry = WiFi.encryptionType(i);
-      //Serial.println(i);
-      //Serial.println(get_encryption_type((wifi_auth_mode_t)i));
-      if(cry<=nWiFiCrypt) encripType[i] = WiFiCrypt[cry];
+      if(cry<=nWiFiCrypt) APList[i].encription = WiFiCrypt[cry];
       else {
-        encripType[i] = "Out of Bounds";
+        APList[i].encription = "Out of Bounds";
         if(m_debug) Serial.println("WARNING Crypto unknown"); 
       }
       if(m_debug) {
-        ssidList[i].toCharArray(ch,99);
-        Serial.printf("%3d: %20s [%3d], Crypto:%16s\n", (i + 1), ch, rssiList[i], encripType[i]);
+        int lenS = APList[i].ssid.length()     + 1; 
+        int lenE = APList[i].encription.length() + 1; 
+        char   ss[lenS];
+        char   en[lenE];
+        APList[i].ssid.toCharArray(ss,lenS);
+        APList[i].encription.toCharArray(en,lenE);
+        Serial.printf("%3d: %20s [%3d], Crypto:%16s\n", (i + 1), ss, APList[i].rssi, en);
       }
     }
   }

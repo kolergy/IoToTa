@@ -1,7 +1,7 @@
 
-// Wifi server inspired from: Rui Santos https://randomnerdtutorials.com  
-
-#include "WebServ.h"
+#ifndef WEB_SERV
+  #include "WebServ.h"
+#endif // WEB_SERV
 
 const char* ssid     = "IoTOtA-Access-Point";          // Replace with your preffered credentials
 const char* password = NULL;
@@ -14,7 +14,11 @@ WiFiServer  server(80);                                // Set web server port nu
 String      header;                                    // Variable to store the HTTP request
 String      outputLedState = "off";                    // Auxiliar variables to store the current output state
 
-void Wifi_AP_setup() {
+WIFI_AP_Serv::WIFI_AP_Serv(bool debug) {
+  if(m_debug) Serial.print("Creating the WIFI_AP_Serv object");
+}
+
+void WIFI_AP_Serv::setup() {
   Serial.print("Setting AP (Access Point)…");          // Connect to Wi-Fi network with SSID and password
   WiFi.softAPConfig(local_IP, gateway, subnet);    
   WiFi.softAP(ssid, password , 0, false, 1);           // Remove the password parameter, if you want the AP (Access Point) to be open
@@ -26,9 +30,8 @@ void Wifi_AP_setup() {
   server.begin();
 }
 
-
-void serve(){
-  WiFiClient client = server.available();   // Listen for incoming clients
+void WIFI_AP_Serv::serve(String** input, int nInputX, int nInputY, String* output, int nOutput){   // Wifi server inspired from: Rui Santos https://randomnerdtutorials.com  
+  client = server.available();              // Listen for incoming clients
 
   if (client) {                             // If a new client connects,
     Serial.println("New Client.");          // print a message out in the serial port
@@ -100,5 +103,6 @@ void serve(){
     client.stop();
     Serial.println("Client disconnected.");
     Serial.println("");
+
   }
 }

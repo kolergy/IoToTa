@@ -1,24 +1,27 @@
+#define WEB_SERV
 
-// inspired from: Rui Santos https://randomnerdtutorials.com  
-
-// Load Wi-Fi library
-#include <WiFi.h>
+#include <WiFi.h>    // Load Wi-Fi libraries
 #include <WiFiAP.h>
 #include <stdlib.h>
 
 #define HTML_LEN 29
 
-class WIFI_AP_Serv {
+#ifndef W_AP_SERV
+  #define W_AP_SERV
+  class WIFI_AP_Serv {
 
-  public:
-    WIFI_AP_Serv();
-    void setup();
-    void serve();
+    public:
+      WIFI_AP_Serv(bool debug=false);
+      void setup();
+      void serve(String** input, int nInputX, int nInputY, String* output, int nOutput);
 
-  private:
-    void  initialisation(); 
+    private:
+      bool       m_debug;
+      WiFiClient client;
+      IPAddress  IP;
+  };
+#endif // W_AP_SERV
 
-};
 /*
 const char** html = {
     "<!DOCTYPE html>",

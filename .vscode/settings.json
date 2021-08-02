@@ -13,6 +13,7 @@
     "ostream": "cpp",
     "sstream": "cpp",
     "streambuf": "cpp",
-    "tuple": "cpp"
+    "tuple": "cpp",
+    "new": "cpp"
   }
 }
