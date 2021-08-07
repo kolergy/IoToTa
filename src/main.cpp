@@ -12,7 +12,7 @@
 #define FwBinTgt   "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/firmware.bin"
 
 //const char* mqtt_server = "192.168.1.21";
-
+//
 
 OTA ota = OTA(DEVICENAME, FWVERSION, FwVerTgt, FwBinTgt, true);  // Creation of theOTA object
 
