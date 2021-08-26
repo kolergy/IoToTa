@@ -47,7 +47,7 @@
       char* getInput();
       void  getCredentialsFromNVS();
       void  clearCredentials();
-      void  scanWifi();
+      void  scanWifi(String** inputs, int lin, int col);
       void  RequestCredentials();
 
       const char*  m_deviceNam; 

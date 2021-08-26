@@ -143,11 +143,11 @@ void OTA::RequestCredentials() {
     }
   } else {            // Serial is not available seting up a wifi accesspoint to request credentials 
     if(m_debug) Serial.println("Scanning the wifi to generate list for the AP");
-    scanWifi();
-    int nInp = 2;
-    //inputs   = new String[nAP][nInp];
-    inputs = new String*[nAP];
-    for(int i = 0; i < nAP; ++i) inputs[i] = new String[nInp];
+    int nInp = 3;
+    
+    inputs = new String*[MAX_NUMBER_OF_AP];               // Generate an empty input array for the Wifi acces Point for the web server 
+    for(int i = 0; i < MAX_NUMBER_OF_AP; ++i) inputs[i] = new String[nInp];
+    scanWifi(inputs, MAX_NUMBER_OF_AP, nInp);
 
     if(m_debug) Serial.println("Starting the AP");
     WIFI_AP_Serv AP = WIFI_AP_Serv();
@@ -343,7 +343,7 @@ int OTA::fwVersionCheck(void) {
   return 0;  
 }
 
-void OTA::scanWifi() {
+void OTA::scanWifi(String** table, int lin, int col) {
   // inspired from https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiScan/WiFiScan.ino
   //String s;
 
@@ -363,22 +363,25 @@ void OTA::scanWifi() {
     }
     nAP = min(nAP, MAX_NUMBER_OF_AP);
     for (int i = 0; i < nAP; ++i) {           // Print SSID and RSSI for each network found
-      APList[i].ssid          = WiFi.SSID(i);
-      APList[i].rssi          = WiFi.RSSI(i);
+      table[i][0]             = WiFi.SSID(i);
+      table[i][1]             = String(WiFi.RSSI(i));
+      //APList[i].ssid          = table[i][0];
+      //APList[i].rssi          = WiFi.RSSI(i);
       wifi_auth_mode_t cry = WiFi.encryptionType(i);
-      if(cry<=nWiFiCrypt) APList[i].encription = WiFiCrypt[cry];
+      if(cry<=nWiFiCrypt) table[i][2] = WiFiCrypt[cry];    //APList[i].encription = WiFiCrypt[cry];
       else {
-        APList[i].encription = "Out of Bounds";
+        table[i][2] = "Out of Bounds";
         if(m_debug) Serial.println("WARNING Crypto unknown"); 
       }
+      //APList[i].encription = table[i][2];
       if(m_debug) {
-        int lenS = APList[i].ssid.length()     + 1; 
-        int lenE = APList[i].encription.length() + 1; 
+        int lenS = table[i][0].length() + 1; 
+        int lenE = table[i][2].length() + 1; 
         char   ss[lenS];
         char   en[lenE];
-        APList[i].ssid.toCharArray(ss,lenS);
-        APList[i].encription.toCharArray(en,lenE);
-        Serial.printf("%3d: %20s [%3d], Crypto:%16s\n", (i + 1), ss, APList[i].rssi, en);
+        table[i][0].toCharArray(ss,lenS);
+        table[i][2].toCharArray(en,lenE);
+        Serial.printf("%3d: %20s [%3s], Crypto:%16s\n", (i + 1), ss, table[i][1], en);
       }
     }
   }

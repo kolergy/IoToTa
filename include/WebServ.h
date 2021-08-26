@@ -13,7 +13,7 @@
     public:
       WIFI_AP_Serv(bool debug=false);
       void setup();
-      void serve(String** input, int nInputX, int nInputY, String* output, int nOutput);
+      void serve(String** input, int lin, int col, String* output, int nOutput);
 
     private:
       bool       m_debug;

@@ -30,9 +30,8 @@ void WIFI_AP_Serv::setup() {
   server.begin();
 }
 
-void WIFI_AP_Serv::serve(String** input, int nInputX, int nInputY, String* output, int nOutput){   // Wifi server inspired from: Rui Santos https://randomnerdtutorials.com  
+void WIFI_AP_Serv::serve(String** input, int lin, int col, String* output, int nOutput){   // Wifi server inspired from: Rui Santos https://randomnerdtutorials.com  
   client = server.available();              // Listen for incoming clients
-
   if (client) {                             // If a new client connects,
     Serial.println("New Client.");          // print a message out in the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
