@@ -291,7 +291,7 @@ void OTA::firmwareUpdate(void) {
     break;
 
   case HTTP_UPDATE_OK:
-    if(m_debug) Serial.println("HTTP_UPDATE_OK");
+    if(m_debug) Serial.println("HTTP_UPDATE_OK" );
     break;
   }
 }
@@ -381,7 +381,7 @@ void OTA::scanWifi(String** table, int lin, int col) {
         char   en[lenE];
         table[i][0].toCharArray(ss,lenS);
         table[i][2].toCharArray(en,lenE);
-        Serial.printf("%3d: %20s [%3s], Crypto:%16s\n", (i + 1), ss, table[i][1], en);
+        Serial.printf("%3d: %20s [%3d], Crypto:  %16s\n", (i + 1), ss, int(table[i][1].toInt()), en);
       }
     }
   }
