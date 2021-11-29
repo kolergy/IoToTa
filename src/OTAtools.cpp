@@ -3,7 +3,7 @@
 #include <WiFiClientSecure.h>
 #include <string>
 
-
+ 
 #ifndef CERT_H
   #include "cert.h"
 #endif // CERT_H
@@ -72,7 +72,7 @@ void OTA::run(void) {  // run a kind of mini state machine
        checkUpdate();
        break;
   }
-}
+}   
 
 void OTA::checkChangeST_INIT() {                        // transition from ST_WIFI_CONNECT to: ST_RUN, ST_WIFI_FAIL, //
   if(FlagCredentialOk)  state = ST_WIFI_CONNECT;
@@ -350,7 +350,7 @@ void OTA::scanWifi(String** table, int lin, int col) {
   WiFi.mode(WIFI_STA);                        // Set WiFi to station mode 
   WiFi.disconnect();                          // disconnect from an AP if it was previously connected
   delay(100); 
-
+  int di = 0;
   if(m_debug) Serial.println("Scan start");        
   nAP = WiFi.scanNetworks();                  // WiFi.scanNetworks will return the number of networks access points found
   if(m_debug) Serial.println("Scan completed");
@@ -363,25 +363,37 @@ void OTA::scanWifi(String** table, int lin, int col) {
     }
     nAP = min(nAP, MAX_NUMBER_OF_AP);
     for (int i = 0; i < nAP; ++i) {           // Print SSID and RSSI for each network found
-      table[i][0]             = WiFi.SSID(i);
-      table[i][1]             = String(WiFi.RSSI(i));
-      //APList[i].ssid          = table[i][0];
-      //APList[i].rssi          = WiFi.RSSI(i);
-      wifi_auth_mode_t cry = WiFi.encryptionType(i);
-      if(cry<=nWiFiCrypt) table[i][2] = WiFiCrypt[cry];    //APList[i].encription = WiFiCrypt[cry];
-      else {
-        table[i][2] = "Out of Bounds";
-        if(m_debug) Serial.println("WARNING Crypto unknown"); 
+      std::vector<String> Vect_SSID;
+      for(int x=0; x < (i-di); x++) {
+        Vect_SSID.push_back(table[x][0]);
+      }
+      int j = strInArray(WiFi.SSID(i), Vect_SSID);
+      if(j > 0) {                      // The SSID is already in the table
+        if(table[j][1] < int(WiFi.RSSI(i))) { // If better RSSI keep the best one
+          table[j][1] = String(WiFi.RSSI(i));
+        }
+        di++  // increment the delta index we now have one less entry
+      } else {
+        table[i-di][0]             = WiFi.SSID(i);
+        table[i-di][1]             = String(WiFi.RSSI(i));
+        //APList[i].ssid          = table[i][0];
+        //APList[i].rssi          = WiFi.RSSI(i);
+        wifi_auth_mode_t cry = WiFi.encryptionType(i);
+        if(cry<=nWiFiCrypt) table[i][2] = WiFiCrypt[cry];    //APList[i].encription = WiFiCrypt[cry];
+        else {
+          table[i][2] = "Out of Bounds";
+          if(m_debug) Serial.println("WARNING Crypto unknown"); 
+        }
       }
       //APList[i].encription = table[i][2];
       if(m_debug) {
-        int lenS = table[i][0].length() + 1; 
-        int lenE = table[i][2].length() + 1; 
+        int lenS = table[i-di][0].length() + 1; 
+        int lenE = table[i-di][2].length() + 1; 
         char   ss[lenS];
         char   en[lenE];
-        table[i][0].toCharArray(ss,lenS);
-        table[i][2].toCharArray(en,lenE);
-        Serial.printf("%3d: %20s [%3d], Crypto:  %16s\n", (i + 1), ss, int(table[i][1].toInt()), en);
+        table[i-di][0].toCharArray(ss,lenS);
+        table[i-di][2].toCharArray(en,lenE);
+        Serial.printf("%3d: %20s [%3d], Crypto:  %16s\n", (i + 1), ss, int(table[i-di][1].toInt()), en);
       }
     }
   }
@@ -412,5 +424,10 @@ void OTA::frqBlink(int t, float f, float r) {   // blink the builtin led at a gi
       }
     }
   }
+}
+
+int strInArray(String str,std::vector<String> array) {
+  Serial.println("strInArray __ Not implemented Yet");
+  return(-1);
 }
 

@@ -1,6 +1,7 @@
 #define OTA_TOOLS
 
 #include <ArduinoNvs.h>
+#include <vector>
 #include <WiFi.h>    // Load Wi-Fi libraries
 
 #ifndef LED_BUILTIN
@@ -24,6 +25,11 @@
     String   encription;  // The type of encription of the AP
   };
 #endif // S_AP_INFO
+
+#ifndef My_Tools
+  #define My_Tools
+  int strInArray(String, std::vector<String>);
+#endif // My_Tools
 
 #ifndef O_T_A
   #define O_T_A

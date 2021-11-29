@@ -15,6 +15,7 @@ String      header;                                    // Variable to store the 
 String      outputLedState = "off";                    // Auxiliar variables to store the current output state
 
 WIFI_AP_Serv::WIFI_AP_Serv(bool debug) {
+  m_debug = debug;
   if(m_debug) Serial.print("Creating the WIFI_AP_Serv object");
 }
 

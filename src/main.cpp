@@ -1,9 +1,13 @@
 //#include <Arduino.h>
-//#include <PubSubClient.h>
+
 
 #ifndef OTA_TOOLS
   #include "OTAtools.h"
 #endif // OTA_TOOLS
+
+#ifndef DATA_MANAGER
+  #include "DataManager.h"
+#endif // DATA_MANAGER
 
 // Settings for the OTA
 #define DEVICENAME "IoToTa_01"
@@ -11,8 +15,7 @@
 #define FwVerTgt   "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/bin_version.txt"
 #define FwBinTgt   "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/firmware.bin"
 
-//const char* mqtt_server = "192.168.1.21";
-//
+
 
 OTA ota = OTA(DEVICENAME, FWVERSION, FwVerTgt, FwBinTgt, true);  // Creation of theOTA object
 
