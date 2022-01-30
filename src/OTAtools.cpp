@@ -346,7 +346,12 @@ int OTA::fwVersionCheck(void) {
 void OTA::scanWifi(String** table, int lin, int col) {
   // inspired from https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiScan/WiFiScan.ino
   //String s;
-
+  if(m_debug) {
+    Serial.printf("Empty table\n");
+    for (int i = 0; i < lin; ++i) {
+      Serial.printf("%3d: %20s [%3d], Crypto:  %16s\n", (i + 1), table[i][0].c_str(), int(table[i][1].toInt()), table[i][2].c_str());
+    }
+  }
   WiFi.mode(WIFI_STA);                        // Set WiFi to station mode 
   WiFi.disconnect();                          // disconnect from an AP if it was previously connected
   delay(100); 
@@ -369,16 +374,14 @@ void OTA::scanWifi(String** table, int lin, int col) {
       }
       int j = strInArray(WiFi.SSID(i), Vect_SSID);
       if(j > 0) {                      // The SSID is already in the table
-        if(table[j][1] < int(WiFi.RSSI(i))) { // If better RSSI keep the best one
+        if(std::atoi(table[j][1].c_str()) < int(WiFi.RSSI(i))) { // If better RSSI keep the best one
           table[j][1] = String(WiFi.RSSI(i));
         }
-        di++  // increment the delta index we now have one less entry
+        di++;  // increment the delta index we now have one less entry
       } else {
         table[i-di][0]             = WiFi.SSID(i);
         table[i-di][1]             = String(WiFi.RSSI(i));
-        //APList[i].ssid          = table[i][0];
-        //APList[i].rssi          = WiFi.RSSI(i);
-        wifi_auth_mode_t cry = WiFi.encryptionType(i);
+        wifi_auth_mode_t cry       = WiFi.encryptionType(i);
         if(cry<=nWiFiCrypt) table[i][2] = WiFiCrypt[cry];    //APList[i].encription = WiFiCrypt[cry];
         else {
           table[i][2] = "Out of Bounds";
@@ -394,6 +397,12 @@ void OTA::scanWifi(String** table, int lin, int col) {
         table[i-di][0].toCharArray(ss,lenS);
         table[i-di][2].toCharArray(en,lenE);
         Serial.printf("%3d: %20s [%3d], Crypto:  %16s\n", (i + 1), ss, int(table[i-di][1].toInt()), en);
+      }
+    }
+    if(m_debug) {
+      Serial.printf("After cleaning %d uniques networks remains\n",(nAP-di));
+      for (int i = 0; i < lin; ++i) {
+        Serial.printf("%3d: %20s [%3d], Crypto:  %16s\n", (i + 1), table[i][0].c_str(), int(table[i][1].toInt()), table[i][2].c_str());
       }
     }
   }
@@ -427,7 +436,10 @@ void OTA::frqBlink(int t, float f, float r) {   // blink the builtin led at a gi
 }
 
 int strInArray(String str,std::vector<String> array) {
-  Serial.println("strInArray __ Not implemented Yet");
+  //Serial.println("strInArray __ Not implemented Yet");
+  for (int i = 0; i < array.size(); ++i) {
+    if(array[i] == str) return i;
+  }
   return(-1);
 }
 

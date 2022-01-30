@@ -1,5 +1,6 @@
 #define WEB_SERV
 
+//include <Arduino.h>
 #include <WiFi.h>    // Load Wi-Fi libraries
 #include <WiFiAP.h>
 #include <stdlib.h>
@@ -19,11 +20,15 @@
       bool       m_debug;
       WiFiClient client;
       IPAddress  IP;
+      /*inline*/ static constexpr  char* http_response_code_ok  = "HTTP/1.1 200 OK\r\n";
+      /*inline*/ static constexpr  char* http_html_content_type = "Content-type:text/html\r\n";
+      /*inline*/ static constexpr  char* http_connection_end    = "Connection: close\r\n\r\n";
+
   };
 #endif // W_AP_SERV
 
 /*
-const char** html = {
+const char** html_chars = {
     "<!DOCTYPE html>",
     "<html lang=\"fr-FR\">",
     "<head>",
@@ -54,5 +59,4 @@ const char** html = {
     "</form>",
     "</body></html>"
 };
-
 */

@@ -1,4 +1,4 @@
-
+#include <arduino.h>
 
 #ifndef DATA_MANAGER
   #define DATA_MANAGER
@@ -11,11 +11,12 @@
 class DataManager {
 
     public:
-      DataManager(bool debug=false, bool signature=true, bool numbering=true);
+      DataManager(char* topic, bool debug=false, bool signature=true, bool numbering=true);
       void dataConnect();
       void pushData();
 
     private:
+      bool       o_topic;
       bool       o_debug;
       bool       o_signature;
       bool       o_numbering;

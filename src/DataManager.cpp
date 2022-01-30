@@ -5,7 +5,7 @@
 
 //#include <PubSubClient.h>
 
-DataManager::DataManager(bool debug=false, bool signature=true, bool numbering=true) {
+DataManager::DataManager(char* topic, bool debug, bool signature, bool numbering) {
    o_debug     = debug;
    o_signature = signature;
    o_numbering = numbering;
