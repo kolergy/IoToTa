@@ -114,4 +114,4 @@ void WIFI_AP_Serv::serve(String** input, int lin, int col, String* output, int n
     client.stop();          // Close the connection
     if(m_debug) Serial.println("Client disconnected.\n");
   }
-}
+} 

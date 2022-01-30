@@ -26,7 +26,7 @@ class DataManager {
       PubSubClient o_mqtt_client;
 
       void create_MQTT_client();
-      
+
 
       void MQTTSend(char* topic, char* payload);
       //void mongoConnect();

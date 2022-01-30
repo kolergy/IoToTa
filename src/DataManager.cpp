@@ -2,9 +2,9 @@
 #ifndef DATA_MANAGER
   #include "DataManager.h"
 #endif // DATA_Manager
+  
 
-
-
+ 
 DataManager::DataManager(char* topic, char* server_IP, int server_port, bool debug, bool signature, bool numbering) {
   o_debug       = debug;
   o_signature   = signature;

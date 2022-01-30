@@ -42,7 +42,7 @@ void setup() {
   //client.setServer(mqtt_server, 1883);
   //client.setCallback(callback);
 }
-
+ 
 void loop() {
   ota.run();                   // do the OTA check routine
   Serial.printf("VBat  :%6.3fV\n", (ReadVoltage(35) * 2.0));
