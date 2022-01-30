@@ -251,6 +251,8 @@ void OTA::connect_wifi() {
   int lenP = password.length() + 1; 
   char ss[lenS];
   char pa[lenP];
+  // create ip_ad variable to store IP adress  using WiFi.localIP()
+  IPAddress ip_ad;
   ssid.toCharArray(    ss, lenS);
   password.toCharArray(pa, lenP);
   if(m_debug) Serial.printf("Waiting for WiFi - SSID: %s Pass: %s\n", ss, pa); 
@@ -265,6 +267,9 @@ void OTA::connect_wifi() {
   }
   
   if(WiFi.status() == WL_CONNECTED) {
+
+    if(m_debug) Serial.println("WiFi connected");
+
     if(m_debug) Serial.printf("\nWiFi successfully connected to: %s after %d retries, local IP: %d.%d.%d.%d, Host Name: %s\n", ss, n, WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3], WiFi.getHostname()); 
     connectAttempt=0;
   } else {
