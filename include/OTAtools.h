@@ -2,8 +2,11 @@
 
 #include <ArduinoNvs.h>
 #include <vector>
-#include <WiFi.h>    // Load Wi-Fi libraries
+#include <WiFi.h>          // Load Wi-Fi libraries
 #include <string>
+#include <NTPClient.h>     // by Fabrice Weinberg
+#include <TimeLib.h>       // by Paul Stoffregen
+
 //#include <cstdlib>
  
 #ifndef LED_BUILTIN
@@ -28,10 +31,42 @@
   };
 #endif // S_AP_INFO
 
+
+
+
 #ifndef My_Tools
   #define My_Tools
-  int strInArray(String, std::vector<String>);
+  int    str_in_array(String, std::vector<String>);
 #endif // My_Tools
+
+#ifndef N_T_O 
+  #define N_T_O    // Network time object
+  /*************************** Definitions **************************************/
+  /* Definition des annees: il y a une annee NON bisextile !
+        quand l'annee est superieure a zero
+                                   |  sauf les multiples de quatres ans
+                                   |         |  et tous les sciecles
+                                   |         |         |  sauf tous les 4 sciecles
+                                   |         |         |           |            */
+  #define ANNEE_NON_BISEXTILE(Y) ((Y>0) && !(Y%4) && ((Y%100) || !(Y%400) ) )
+
+  class NTO {
+    public:
+      NTO();
+      void   connect_to_NTP();
+      String getFormattedDate();
+      String getFormattedTime();
+      time_t t_0;                  // The time of the first connection to the NTO server
+      float  dt_NTP_s;             // The time to acquire the ntp time
+      
+    private:
+      WiFiUDP           ntpUDP;                    
+      NTPClient         timeClient;
+
+  }
+  
+
+#endif // N_T_O
 
 #ifndef O_T_A
   #define O_T_A

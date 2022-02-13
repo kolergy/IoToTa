@@ -16,6 +16,9 @@
   #include "WebServ.h"
 #endif // WEB_SERV
 
+
+#define DEBUG_NTPClient
+
 // The tools to do OTA for the IoT including an accesspoint & webserver to select wifi ssid & insert password
 
 unsigned long previousMillis   =     0; // will store last time LED was updated
@@ -29,6 +32,9 @@ static const int  nST_Names    = 5;
                              //     0      1        2           3            4                5               6          7          8           9     
 static const char *WiFiCrypt[] = {"Open", "WEP", "WPA PSK", "WPA2 PSK", "WPA WPA2 PSK", "WPA2 Enterprise", "Unknown", "Unknown", "Unknown",  "Unknown"};
 static const int  nWiFiCrypt   = 10;
+
+
+
 
 OTA::OTA(const char* deviceNam, const char* curFwVer, const char* verFile, const char* firmwrBin, bool debug) {
   m_deviceNam      = deviceNam;
@@ -195,9 +201,9 @@ char* OTA::getInput() {               // Get user input from Serial
   char        buf[256];
   static char rtrn[256];
   boolean     newD     = false;
-  byte ndx             = 0;
+  byte        ndx      = 0;
   char        endMark  = '\n';
-  char rc;
+  char        rc;
   //for(int i=0;i<255;i++) buf[i] = 0;
   //Serial.println(buf);
   while (newD == false && ndx < 255) {
@@ -221,8 +227,8 @@ char* OTA::getInput() {               // Get user input from Serial
 }
 
 void OTA::getCredentialsFromNVS() {  // Get credentials from NVS memory if available or request them through serial
-  //NVS.setString("ssid"    , "");                   // erase SSID & pass from NVS mem
-  //NVS.setString("password", "");                   // 
+  NVS.setString("ssid"    , "fst");                   // erase SSID & pass from NVS mem
+  NVS.setString("password", "death by TRAY it shall be");                   // 
   ssid     = NVS.getString("ssid"    );
   password = NVS.getString("password");
   if(ssid != "") FlagCredentialOk = true;
@@ -377,7 +383,7 @@ void OTA::scanWifi(String** table, int lin, int col) {
       for(int x=0; x < (i-di); x++) {
         Vect_SSID.push_back(table[x][0]);
       }
-      int j = strInArray(WiFi.SSID(i), Vect_SSID);
+      int j = str_in_array(WiFi.SSID(i), Vect_SSID);
       if(j > 0) {                      // The SSID is already in the table
         if(std::atoi(table[j][1].c_str()) < int(WiFi.RSSI(i))) { // If better RSSI keep the best one
           table[j][1] = String(WiFi.RSSI(i));
@@ -440,7 +446,7 @@ void OTA::frqBlink(int t, float f, float r) {   // blink the builtin led at a gi
   }
 }
 
-int strInArray(String str,std::vector<String> array) {
+int str_in_array(String str,std::vector<String> array) {
   //Serial.println("strInArray __ Not implemented Yet");
   for (int i = 0; i < array.size(); ++i) {
     if(array[i] == str) return i;
@@ -448,3 +454,58 @@ int strInArray(String str,std::vector<String> array) {
   return(-1);
 }
 
+NTO::NTO() {
+  Serial.println("NTP time client Object created");
+
+  timeClient = NTPClient(ntpUDP, "europe.pool.ntp.org", 3600*2, 60000);
+}
+
+void NTO::connect_to_NTP() {
+  Serial.println("Starting NTP time client");
+  timeClient.begin();
+  Serial.println("NTP time client started: Synchronising with NTP");
+  unsigned long t_board_ms = millis();                   // get the current time from board
+  dt_NTP_s = (millis()-t_board_ms)/1000.0;               // initialise delta time
+  while(!timeClient.update() && dt_NTP_s<60.0*4) {
+    Serial.print(".");
+    delay(100);
+    dt_NTP_s = (millis()-t_board_ms)/1000.0;
+  }
+  if(dt_NTP_s > 60.0*4) Serial.println("Failed to Synchronize");                        //
+  t_0 = timeClient.getEpochTime();                // get the ntp time
+  setTime(t_0);                                   // set the board time to the ntp time
+  //delay(100);                                    
+}
+
+// Based on https://github.com/PaulStoffregen/Time/blob/master/Time.cpp
+// currently assumes UTC timezone, instead of using this->_timeOffset
+String NTO::getFormattedDate() {
+  //if(timeClient.isTimeSet()) {
+    unsigned long rawTime = (timeClient.getEpochTime()) / 86400L;  // in days
+    unsigned long days    =    0;
+    unsigned long year    = 1970;
+    uint8_t month;
+    static const uint8_t monthDays[]={31,28,31,30,31,30,31,31,30,31,30,31};
+
+    while((days += (ANNEE_NON_BISEXTILE(year) ? 366 : 365)) <= rawTime) {year++;}
+    rawTime -= days - (ANNEE_NON_BISEXTILE(year) ? 366 : 365); // now it is days in this year, starting at 0
+    days=0;
+    for (month=0; month<12; month++) {
+      uint8_t monthLength;
+      if (month==1) { monthLength = ANNEE_NON_BISEXTILE(year) ? 29 : 28; } // february
+      else          { monthLength = monthDays[month];}
+      if (rawTime < monthLength) break;
+      rawTime -= monthLength;
+    }
+    String monthStr = ++month   < 10 ? "0" + String(month  ) : String(month  ); // jan is month 1
+    String dayStr   = ++rawTime < 10 ? "0" + String(rawTime) : String(rawTime); // day of month
+    return String(year) + "-" + monthStr + "-" + dayStr;
+  //} else {
+  //  return NULL;
+  //}
+
+}
+
+String NTO::getFormattedTime() {
+  return timeClient.getFormattedTime();
+}
