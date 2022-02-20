@@ -82,7 +82,7 @@ void WIFI_AP_Serv::serve(String** input, int lin, int col, String* output, int n
             client.println(".button2 {background-color: #555555;}</style></head>");
             
             // Web Page Heading
-            client.println("<body><h1>IoTOtA Temporrary Web Server</h1>");
+            client.println("<body><h1>IoToTa Temporrary Web Server</h1>");
             client.println("<label for=\"ssid_select\">Choose a Wifi Network:</label>");
             client.println("<select name=\"ssid\" id=\"ssid_select\">");
             client.println("<option value=\"\">--Please choose a Wifi Network--</option>");
@@ -90,6 +90,29 @@ void WIFI_AP_Serv::serve(String** input, int lin, int col, String* output, int n
                 client.print("<option value=\"" + input[l][0] +"\">" + input[l][0] + ", rssi:" + input[l][1] + ", " + input[l][2] + "</option>");
             }
             client.println("</select>");
+            client.println("<br>");
+
+            // password input
+            client.println("<label for=\"password_input\">Password:</label>");S
+            client.println("<textarea rows=“1” cols=“30”>");
+            client.println("Enter the senected wifi password...");
+            client.println("</textarea>");
+            client.println("<br>");
+
+            // submit button
+            client.println("<button class=\"button button2\" onclick=\"myFunction()\">Submit</button>");
+            client.println("<p id=\"demo\"></p>");
+            client.println("<script>");
+            client.println("function myFunction() {");
+            client.println("var x = document.getElementById(\"ssid_select\").value;");
+            client.println("var y = document.getElementById(\"password_input\").value;");
+            client.println("document.getElementById(\"demo\").innerHTML = \"You selected: \" + x + \" and password: \" + y;");
+            client.println("}");
+            client.println("</script>");
+            //client.println("</body></html>");
+            //break;
+          //}
+
             // // Display current state, and ON/OFF buttons for GPIO 26  
             // client.println("<p>LED - State " + outputLedState + "</p>");
             // // If the output26State is off, it displays the ON button       
