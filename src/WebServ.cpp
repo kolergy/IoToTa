@@ -93,7 +93,7 @@ void WIFI_AP_Serv::serve(String** input, int lin, int col, String* output, int n
             client.println("<br>");
 
             // password input
-            client.println("<label for=\"password_input\">Password:</label>");S
+            client.println("<label for=\"password_input\">Password:</label>");
             client.println("<textarea rows=“1” cols=“30”>");
             client.println("Enter the senected wifi password...");
             client.println("</textarea>");
