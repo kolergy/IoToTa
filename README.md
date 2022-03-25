@@ -7,6 +7,8 @@ For security reasons it uses HTTPS & WiFi credentials are not stored in the firm
 Initially based on https://github.com/programmer131/ESP8266_ESP32_SelfUpdate & some inspiration from https://github.com/SensorsIot/ESP32-OTA
 - Adapted to be used with PlatformIO
 - Adapted to move the heavy lifting in the OTAtools.cpp  & refactored into the OTA class
+- Added a scan of the available WiFi networks
+- Added a temporary WiFi access point to select the network & set the password.
 - Added builtin LED blinking depending of the stat-e of the device 
 - Added a debug & a silent mode
 - Modified to remove the SSID & password from the firmware bin 
