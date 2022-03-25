@@ -1,7 +1,5 @@
 #include <Arduino.h>
-#include <HTTPUpdate.h>
-#include <WiFiClientSecure.h>
-#include <string>
+
 
  
 #ifndef CERT_H
@@ -156,19 +154,26 @@ void OTA::RequestCredentials() {
     scanWifi(inputs, MAX_NUMBER_OF_AP, nInp);
 
     if(m_debug) Serial.println("Starting the AP");
-    WIFI_AP_Serv AP = WIFI_AP_Serv();
+    WIFI_AP_Serv AP = WIFI_AP_Serv(m_debug);
     AP.setup();
     do {
       AP.serve(inputs, nAP, nInp, result, nResult);
+      //for (int i = 0; i < nResult; ++i) {
+      //  if(m_debug) Serial.printf("result[%d]: %s\n", i, result[i].c_str());
+      //  if(i == 0) newCred.ssid     = result[i];
+      //  if(i == 1) newCred.password = result[i];
+      //}
       //delay(1000);
     } while(result[0] == "" || result[1] == "" );
     newCred.ssid     = result[0];
     newCred.password = result[1];
     resS             = NVS.setString("ssid", newCred.ssid);
-    Serial.print(":" + newCred.ssid + ":");
+    ssid             = newCred.ssid;
+    Serial.print(":" + ssid + ":");
     if(resS) Serial.println(" SSID updated");
     resP             = NVS.setString("password", newCred.password);
-    Serial.print(":" + newCred.password + ":");
+    password         = newCred.password;
+    Serial.print(":" + password + ":");
     if(resP) Serial.println(" Password updated");
     delete [] result;                                  // Cean up the mess
     for(int i = 0; i < nAP; ++i) delete [] inputs[i];  // Cean up the mess
@@ -227,8 +232,6 @@ char* OTA::getInput() {               // Get user input from Serial
 }
 
 void OTA::getCredentialsFromNVS() {  // Get credentials from NVS memory if available or request them through serial
-  NVS.setString("ssid"    , "fst");                   // erase SSID & pass from NVS mem
-  NVS.setString("password", "death by TRAY it shall be");                   // 
   ssid     = NVS.getString("ssid"    );
   password = NVS.getString("password");
   if(ssid != "") FlagCredentialOk = true;
@@ -327,7 +330,7 @@ int OTA::fwVersionCheck(void) {
     delay(100);
     if (httpCode == HTTP_CODE_OK) {    // if version received
       payload = https.getString();     // save received version
-    } else {
+    } else { 
       if(m_debug) { 
         Serial.print("error in downloading version file:");
         Serial.println(httpCode);
@@ -357,7 +360,7 @@ int OTA::fwVersionCheck(void) {
 void OTA::scanWifi(String** table, int lin, int col) {
   // inspired from https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiScan/WiFiScan.ino
   //String s;
-  if(m_debug) {
+  if(false) {
     Serial.printf("Empty table\n");
     for (int i = 0; i < lin; ++i) {
       Serial.printf("%3d: %20s [%3d], Crypto:  %16s\n", (i + 1), table[i][0].c_str(), int(table[i][1].toInt()), table[i][2].c_str());
@@ -412,7 +415,7 @@ void OTA::scanWifi(String** table, int lin, int col) {
     }
     if(m_debug) {
       Serial.printf("After cleaning %d uniques networks remains\n",(nAP-di));
-      for (int i = 0; i < lin; ++i) {
+      for (int i = 0; i < nAP-di; ++i) {
         Serial.printf("%3d: %20s [%3d], Crypto:  %16s\n", (i + 1), table[i][0].c_str(), int(table[i][1].toInt()), table[i][2].c_str());
       }
     }
@@ -454,34 +457,35 @@ int str_in_array(String str,std::vector<String> array) {
   return(-1);
 }
 
-NTO::NTO() {
+TO::TO() {
   Serial.println("NTP time client Object created");
-
-  timeClient = NTPClient(ntpUDP, "europe.pool.ntp.org", 3600*2, 60000);
 }
 
-void NTO::connect_to_NTP() {
+void TO::connect_to_NTP() { 
   Serial.println("Starting NTP time client");
-  timeClient.begin();
-  Serial.println("NTP time client started: Synchronising with NTP");
-  unsigned long t_board_ms = millis();                   // get the current time from board
-  dt_NTP_s = (millis()-t_board_ms)/1000.0;               // initialise delta time
-  while(!timeClient.update() && dt_NTP_s<60.0*4) {
-    Serial.print(".");
-    delay(100);
-    dt_NTP_s = (millis()-t_board_ms)/1000.0;
-  }
-  if(dt_NTP_s > 60.0*4) Serial.println("Failed to Synchronize");                        //
-  t_0 = timeClient.getEpochTime();                // get the ntp time
-  setTime(t_0);                                   // set the board time to the ntp time
-  //delay(100);                                    
+  if(WiFi.status() == WL_CONNECTED) {
+    timeClient.begin();
+    Serial.println("NTP time client started: Synchronising with NTP");
+    unsigned long t_board_ms = millis();                   // get the current time from board
+    dt_NTP_s = (millis()-t_board_ms)/1000.0;               // initialise delta time
+    while(!timeClient.update() && dt_NTP_s<60.0*4) {
+      Serial.print(".");
+      delay(100);
+      dt_NTP_s = (millis()-t_board_ms)/1000.0;
+    }
+    if(dt_NTP_s > 60.0*4) Serial.println("Failed to Synchronize");                        //
+    t_0 = timeClient.getEpochTime();                // get the ntp time
+    setTime(t_0);                                   // set the board time to the ntp time
+  } else {
+    Serial.println("ERROR: WiFi not connected");
+  }                                
 }
 
 // Based on https://github.com/PaulStoffregen/Time/blob/master/Time.cpp
 // currently assumes UTC timezone, instead of using this->_timeOffset
-String NTO::getFormattedDate() {
+String TO::getFormattedDate() {
   //if(timeClient.isTimeSet()) {
-    unsigned long rawTime = (timeClient.getEpochTime()) / 86400L;  // in days
+    unsigned long rawTime = (0);//timeClient.getEpochTime()) / 86400L;  // in days
     unsigned long days    =    0;
     unsigned long year    = 1970;
     uint8_t month;
@@ -506,6 +510,6 @@ String NTO::getFormattedDate() {
 
 }
 
-String NTO::getFormattedTime() {
+String TO::getFormattedTime() {
   return timeClient.getFormattedTime();
 }

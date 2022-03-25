@@ -34,9 +34,9 @@ bool  numbering   = true;
 SHT31       sht30;
 
 OTA         ota   = OTA(DEVICENAME, FWVERSION, FwVerTgt, FwBinTgt, true);  // Creation of theOTA object
-DataManager dataM = DataManager(topic, server_IP, server_port, debug, signature, numbering);
+//DataManager dataM = DataManager(topic, server_IP, server_port, debug, signature, numbering);
 
-NTO         nto   = NTO();
+TO         nto   = TO();
 
 double ReadVoltage(byte pin){                   // From: https://github.com/G6EJD/ESP32-ADC-Accuracy-Improvement-function/blob/master/ESP32_ADC_Read_Voltage_Accurate.ino
   double reading = analogRead(pin);             // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
@@ -63,7 +63,7 @@ void setup() {
   I2CScan();
   sht30.begin(SHT31_ADDRESS);
   nto.connect_to_NTP();
-  dataM.create_MQTT_client();
+  //dataM.create_MQTT_client();
 }
  
 void loop() {

@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 #include <wifi.h>
-#include <PubSubClient.h> // by Nick O'Leary
+//#include <PubSubClient.h> // by Nick O'Leary
 #include <ArduinoJson.h>  // by Benoit Blanchon
 
 class DataManager {
@@ -26,7 +26,7 @@ class DataManager {
     int           o_server_port;
     unsigned long o_numbering_counter;
     WiFiClient    o_wifi_client;
-    PubSubClient  o_mqtt_client;
+    //PubSubClient  o_mqtt_client;
 
 
     //void mongoConnect();

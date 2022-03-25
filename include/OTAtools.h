@@ -6,6 +6,9 @@
 #include <string>
 #include <NTPClient.h>     // by Fabrice Weinberg
 #include <TimeLib.h>       // by Paul Stoffregen
+#include <HTTPUpdate.h>
+#include <WiFiClientSecure.h>
+
 
 //#include <cstdlib>
  
@@ -50,9 +53,9 @@
                                    |         |         |           |            */
   #define ANNEE_NON_BISEXTILE(Y) ((Y>0) && !(Y%4) && ((Y%100) || !(Y%400) ) )
 
-  class NTO {
+  class TO { // Network time object
     public:
-      NTO();
+      TO();
       void   connect_to_NTP();
       String getFormattedDate();
       String getFormattedTime();
@@ -60,10 +63,9 @@
       float  dt_NTP_s;             // The time to acquire the ntp time
       
     private:
-      WiFiUDP           ntpUDP;                    
-      NTPClient         timeClient;
-
-  }
+      WiFiUDP           ntpUDP;                 
+      NTPClient         timeClient = NTPClient(ntpUDP, "europe.pool.ntp.org", 3600*2, 60000);
+  };
   
 
 #endif // N_T_O
@@ -101,7 +103,7 @@
       bool         FlagCredentialOk;
       int          state;
       int          connectAttempt;
-      int          MaxAttempt = 4;
+      int          MaxAttempt = 1;
       int          nAP;
       //int          rssiList[   MAX_NUMBER_OF_AP ];
       //const char*  encripType[ MAX_NUMBER_OF_AP ];

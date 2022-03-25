@@ -13,23 +13,22 @@ IPAddress   subnet(  255,255,255,  0);
 
 WiFiServer  server(80);                                // Set web server port number to 80
 String      header;                                    // Variable to store the HTTP request
-//String      outputLedState = "off";                    // Auxiliar variables to store the current output state
 
 WIFI_AP_Serv::WIFI_AP_Serv(bool debug) {
   m_debug = debug;
-  if(m_debug) Serial.print("Creating the WIFI_AP_Serv object");
+  if(m_debug) Serial.println("Creating the WIFI_AP_Serv on temporary ssid: " + String(ssid));
 }
 
 void WIFI_AP_Serv::setup() {
   // Initialize the WiFi module and set the WiFi mode to AP
   // To a given local IP address, and luanch the web server
-  if(m_debug) Serial.print("Setting AP (Access Point)…");          // Connect to Wi-Fi network with SSID and password
+  if(m_debug) Serial.println("Setting AP (Access Point)…");          // Connect to Wi-Fi network with SSID and password
   WiFi.softAPConfig(local_IP, gateway, subnet);    
   WiFi.softAP(ssid, password , 0, false, 1);           // Remove the password parameter, if you want the AP (Access Point) to be open
 
   IPAddress IP = WiFi.softAPIP(); 
   //if(m_debug) Serial.print("AP IP address: %s", IP.toString().c_str());  
-  if(m_debug) Serial.print(IP.toString().c_str());  
+  if(m_debug) Serial.print("Ready to serve on host: " + IP.toString());
   server.begin();
 }
 
@@ -39,96 +38,90 @@ void WIFI_AP_Serv::serve(String** input, int lin, int col, String* output, int n
   // their encriptions type, and their associated RSSI (Received Signal Strength Indicator)
   // As an output this function collects the line number selected by the user from the table and an associated 
   // string eg: the password of the selected wifi network.
+  //Serial.println("Ready to serve on host: " + WiFi.softAPIP().toString());
+  //Serial.println(char(lin + 1) + " Wifi networks found");
   client = server.available();              // Listen for incoming clients
   if (client) {                             // If a new client connects,
     Serial.println("New Client.");          // print a message out in the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
-      if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();             // read a byte, then
-        Serial.write(c);                    // print it out the serial monitor
-        header += c;
-        if (c == '\n') {                    // if the byte is a newline character
-          // if the current line is blank, you got two newline characters in a row.
-          // that's the end of the client HTTP request, so send a response:
-          if (currentLine.length() == 0) {
+      if (client.available()) {             // if there's bytes to read from the client
+        char c       = client.read();       // read a byte, then
+        if (c !='\r' && c !='\n' ) {
+          currentLine += c; 
+        } else if (c == '\r') {   
+          //Serial.print("#_RRR_#");
+        } else if (c == '\n') {               // if the byte is a newline character
+          Serial.println("<< " + currentLine);
+          header     += currentLine;
+          if (currentLine.length() != 0) {
+            // Check to see if the first word of the current line is "GET /?ssid=" to collect the ssid & password
+            if (currentLine.startsWith("GET /")) {
+              // Extract the ssid and password from the current line
+              int s0 = currentLine.indexOf("?ssid=");
+              if (s0 > 0) {
+                s0 += 6;
+                String ssid     = currentLine.substring(s0, currentLine.indexOf("&pword="));
+                String password = currentLine.substring(currentLine.indexOf("&pword=") + 7, currentLine.indexOf(" HTTP/1.1"));
+                Serial.println("ssid: "     + ssid    + ", password: " + password); 
+                output[0] = ssid;
+                output[1] = password;
+                break; // got the data we wanted
+              }      
+            }
+            currentLine = "";      
+          } else {
+            // if the current line is blank, you got two newline characters in a row.
+            // that's the end of the client HTTP request, so send a response:
             // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
             // and a content-type so the client knows what's coming, then a blank line:
             client.println(http_response_code_ok);
-            //client.println(http_html_content_type);
-            //client.println(http_connection_end);
             client.println();
-            
-            // // turns the GPIOs on and off
-            // if (header.indexOf("GET /26/on") >= 0) {
-            //   Serial.println("LED on");
-            //   outputLedState = "on";
-            //   //digitalWrite(ledPin, LOW);
-            // } else if (header.indexOf("GET /26/off") >= 0) {
-            //   Serial.println("LED off");
-            //   outputLedState = "off";
-            //   //digitalWrite(ledPin, HIGH);
-            // }
             
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
             client.println("<link rel=\"icon\" href=\"data:,\">");
-            // CSS to style the on/off buttons 
-            // Feel free to change the background-color and font-size attributes to fit your preferences
-            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
-            client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;");
-            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
-            client.println(".button2 {background-color: #555555;}</style></head>");
             
-            // Web Page Heading
-            client.println("<body><h1>IoToTa Temporrary Web Server</h1>");
-            client.println("<label for=\"ssid_select\">Choose a Wifi Network:</label>");
-            client.println("<select name=\"ssid\" id=\"ssid_select\">");
+            //// Web Page Heading
+            client.println("<div class=\"topnav\">"                );
+            client.println("<h1>IoToTa Temporrary Web Server</h1>" );
+            client.println("</div>"                                );
+            client.println("<div class=\"content\">"               );
+            client.println("<div class=\"card-grid\">"             );
+            client.println("<div class=\"card\">"                  );
+            client.println("<form action=\"/\" method=\"get\" enctype=\"text/plain\">"   );
+            client.println("<p>"                                   );
+
+            // list SSIDs
+            client.println("<label for=\"ssid_select\">Choose a Wifi Network:</label>"   ); 
+            client.println("<select name=\"ssid\" id=\"ssid_select\">"                   );
             client.println("<option value=\"\">--Please choose a Wifi Network--</option>");
             for(int l  = 0; l < lin; l++){
                 client.print("<option value=\"" + input[l][0] +"\">" + input[l][0] + ", rssi:" + input[l][1] + ", " + input[l][2] + "</option>");
             }
-            client.println("</select>");
-            client.println("<br>");
+            client.println("</select>"                                                   ); // end of select
+            client.println("<br>"                                                        ); // end of line
 
             // password input
-            client.println("<label for=\"password_input\">Password:</label>");
-            client.println("<textarea rows=“1” cols=“30”>");
-            client.println("Enter the senected wifi password...");
-            client.println("</textarea>");
-            client.println("<br>");
+            client.println("<label for=\"password_input\">Password:</label>"); // label
+            client.println("<textarea name=\"pword\" id=\"password_input\" rows=“1” cols=“30”>"                  ); // textarea
+            client.println("</textarea>"                                    ); // end of password input
+            client.println("<br>"                                           ); // end of line
 
-            // submit button
-            client.println("<button class=\"button button2\" onclick=\"myFunction()\">Submit</button>");
-            client.println("<p id=\"demo\"></p>");
-            client.println("<script>");
-            client.println("function myFunction() {");
-            client.println("var x = document.getElementById(\"ssid_select\").value;");
-            client.println("var y = document.getElementById(\"password_input\").value;");
-            client.println("document.getElementById(\"demo\").innerHTML = \"You selected: \" + x + \" and password: \" + y;");
-            client.println("}");
-            client.println("</script>");
-            //client.println("</body></html>");
-            //break;
-          //}
+            // end of the form
+            client.println("<input type =\"submit\" value =\"Submit\">"); // Submit button
+            client.println("</p>"                                      ); // end of the form
+            client.println("</form>"                                   ); // close the form
+            client.println("</div>"                                    ); // close the card
+            client.println("</div>"                                    ); // close the card-grid
+            client.println("</div>"                                    ); // close the content
+            client.println("</body>"                                   ); // close the body
+            client.println("</html>"                                   ); // close the html
+            client.println();                  // The HTTP response ends with another blank line
+            break;                             // break out of the while loop
 
-            // // Display current state, and ON/OFF buttons for GPIO 26  
-            // client.println("<p>LED - State " + outputLedState + "</p>");
-            // // If the output26State is off, it displays the ON button       
-            // if (outputLedState=="off") {
-            //   client.println("<p><a href=\"/26/on\"><button class=\"button\">ON</button></a></p>");
-            // } else {
-            //   client.println("<p><a href=\"/26/off\"><button class=\"button button2\">OFF</button></a></p>");
-            // } 
-            client.println("</body></html>");
-            client.println();                         // The HTTP response ends with another blank line
-            break;
-          } else {               // if you got a newline, then clear currentLine
-            currentLine = "";
-          }
-        } else if (c != '\r') {  // if you got anything else but a carriage return character,
-          currentLine += c;      // add it to the end of the currentLine
+          }                              
         }
       }
     }

@@ -24,7 +24,7 @@ DataManager::DataManager(String topic, String server_IP, int server_port, bool d
 void DataManager::create_MQTT_client() {
   if(o_debug) Serial.print("Creating the MQTT client");
   o_wifi_client = WiFiClient();
-  o_mqtt_client = PubSubClient(o_wifi_client);
+ // o_mqtt_client = PubSubClient(o_wifi_client);
 }
 
 void DataManager::MQTT_Send(String topic, String payload) {
@@ -33,7 +33,7 @@ void DataManager::MQTT_Send(String topic, String payload) {
   if(o_numbering == true) {
     o_numbering_counter++;
   }
-  o_mqtt_client.publish(topic.c_str(), payload.c_str());
+  //o_mqtt_client.publish(topic.c_str(), payload.c_str());
 }
 
 
