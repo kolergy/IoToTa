@@ -5,7 +5,7 @@
 #include <WiFi.h>          // Load Wi-Fi libraries
 #include <string>
 #include <NTPClient.h>     // by Fabrice Weinberg
-#include <TimeLib.h>       // by Paul Stoffregen
+#include <TimeLib.h>       // by Paul Stoffregen  // by Michael Margolis
 #include <HTTPUpdate.h>
 #include <WiFiClientSecure.h>
 

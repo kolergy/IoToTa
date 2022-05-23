@@ -2,8 +2,8 @@
 #ifndef I2C_MANAGER
   #define I2C_MANAGER
 
-  #include <arduino.h>
-  #include <wire.h>
+  #include <Arduino.h>
+  #include <Wire.h>
 
   
 

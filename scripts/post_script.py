@@ -2,8 +2,15 @@ from shutil import copyfile
 import os
 
 Import("env")
-sou = ".pio\\build\\lolin_d32\\firmware.bin"
-dst = "Data\\fw.bin"
+Import("projenv")
+print("||||||| IoToTa: entering post script  ||||||||")
+#print("-- Environement env Dump ---")
+#print(env.Dump())
+#print("-- Environement projenv Dump ---")
+#print(projenv.Dump())
+
+#sou = ".pio\\build\\lolin_d32\\firmware.bin"
+#dst = "Data\\fw.bin"
 
 def after_build(source, target, env): 
     """After Build, Autaumaticaly coppy the bin file to the daa dir then update the version file"""
@@ -51,4 +58,4 @@ def AB(source, target, env):
 #	env.VerboseAction("copy $BUILD_DIR/${PROGNAME}.elf $PROJECT_DATA_DIR/${PROGNAME}.elf", 
 #	"Moving target to: $PROJECT_DATA_DIR/${PROGNAME}.elf")
 #)
-env.AddPostAction("$BUILD_DIR/${PROGNAME}.elf", AB )
+#env.AddPostAction("$BUILD_DIR/${PROGNAME}.elf", AB )

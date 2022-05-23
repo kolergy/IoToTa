@@ -1,56 +1,52 @@
-//#include <Arduino.h>
-#include <SHT31.h>  // by Rob Tillaart
+#include <Arduino.h>
+
+#ifndef CONFIGURATION
+  #include "Configuration.h"
+#endif // CONFIGURATION
+
+#ifndef CREDENTIALS_H
+  #include "credentials.h"
+#endif // CREDENTIALS_H
 
 #ifndef OTA_TOOLS
   #include "OTAtools.h"
 #endif // OTA_TOOLS
 
-#ifndef DATA_MANAGER
-  #include "DataManager.h"
-#endif // DATA_MANAGER
-
 #ifndef I2C_MANAGER
   #include "I2CManager.h"
 #endif // I2C_MANAGER
 
-// Settings for the OTA
-#define DEVICENAME "IoToTa_01"
-#define FWVERSION  "0.3"
-#define FwVerTgt   "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/bin_version.txt"
-#define FwBinTgt   "https://raw.githubusercontent.com/kolergy/IoToTa/master/Data/firmware.bin"
+#ifndef DATA_ACQUISITION
+  #include "DataAcquisition.h"
+#endif // DATA_ACQUISITION
 
+#ifndef DATA_MANAGER
+  #include "DataManager.h"
+#endif // DATA_MANAGER
 
-String topic       = "IoToTa/01/data";
-String server_IP   = "192.168.1.1";
-int   server_port = 1883;
+#include <SHT31.h>  // by Rob Tillaart
+
+const char* mqtt_topic_temp_C   = "IoToTa/LVR/temp_C";
+const char* mqtt_topic_RH_pct   = "IoToTa/LVR/Rel_hum_pct";
+const char* mqtt_topic_P_amb_pa = "IoToTa/LVR/P_amb_Pa";
+const char* mqtt_topic_V_bat_V  = "IoToTa/LVR/V_bat_V";
+
 bool  debug       = true;
 bool  signature   = false;
 bool  numbering   = true;
 
-#define SHT31_ADDRESS   0x44
-
-#define DEBUG_NTPClient
-
-SHT31       sht30;
-
-OTA         ota   = OTA(DEVICENAME, FWVERSION, FwVerTgt, FwBinTgt, true);  // Creation of theOTA object
-//DataManager dataM = DataManager(topic, server_IP, server_port, debug, signature, numbering);
-
-TO         nto   = TO();
-
-double ReadVoltage(byte pin){                   // From: https://github.com/G6EJD/ESP32-ADC-Accuracy-Improvement-function/blob/master/ESP32_ADC_Read_Voltage_Accurate.ino
-  double reading = analogRead(pin);             // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
-  if(reading < 1 || reading > 4095) return 0;
-  //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
-  return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
-}                                               // Added an improved polynomial, use either, comment out as required
-
+OTA             ota   = OTA(DEVICENAME, FWVERSION, FwVerTgt, FwBinTgt, true);  // Creation of theOTA object
+//TO              nto   = TO();
+DataAcquisition DA    = DataAcquisition();
+DataManager     dataM = DataManager(mqtt_server, mqtt_port, mqtt_user, mqtt_password, debug, signature, numbering);
+SHT31           sht30;
 
 void setup() {
-  analogSetClockDiv(255); // 1338mS  for acurate ADC
-  adcAttachPin(35);
-  Serial.begin(9600);
+  //analogSetClockDiv(255); // 1338mS  for acurate ADC
+  //adcAttachPin(35);
+  Serial.begin(115200);
   Serial.flush();
+  Serial.println("Welcome to IOTOTA!!!");
   pinMode(LED_BUILTIN, OUTPUT);
   //for (int i = 0; i < 50; ++i) Serial.printf("Pin %2d :%6.3fV\n", i, ReadVoltage(i));
   ota.run();            // Set of the OTA system request through Serial SSID & PS if necessary then connect to WiFi 
@@ -62,8 +58,47 @@ void setup() {
   //client.setCallback(callback);
   I2CScan();
   sht30.begin(SHT31_ADDRESS);
-  nto.connect_to_NTP();
+  //nto.connect_to_NTP();
   //dataM.create_MQTT_client();
+
+  #ifdef PA_TOURNER
+    #ifdef PLATFORMIO
+      Serial.println("def PLATFORMIO");
+    #endif // PLATFORMIO
+
+    #ifdef ARDUINO_LOLIN_D32
+      Serial.println("def ARDUINO_LOLIN_D32");
+    #endif // ARDUINO_LOLIN_D32
+
+    #ifdef HAVE_CONFIG_H
+      Serial.println("def HAVE_CONFIG_H");
+    #endif // HAVE_CONFIG_H
+
+    #ifdef MBEDTLS_CONFIG_FILE
+      Serial.println("def MBEDTLS_CONFIG_FILE");
+    #endif // MBEDTLS_CONFIG_FILE
+
+    #ifdef UNITY_INCLUDE_CONFIG_H
+      Serial.println("def UNITY_INCLUDE_CONFIG_H");
+    #endif // UNITY_INCLUDE_CONFIG_H
+
+    #ifdef ESP32
+      Serial.println("def ESP32");
+    #endif // ESP32
+
+    #ifdef F_CPU
+      Serial.println("def F_CPU");
+    #endif // ESP_PLATFORM
+
+    #ifdef ESP_PLATFORM
+      Serial.println("def ESP_PLATFORM");
+    #endif // ESP_PLATFORM
+
+    #ifdef ARDUINO_BOARD
+      Serial.print("def ARDUINO_BOARD: ");
+      Serial.println(ARDUINO_BOARD);
+    #endif // ARDUINO_BOARD
+  #endif // PA_TOURNER
 }
  
 void loop() {
@@ -71,15 +106,25 @@ void loop() {
   ota.run();                   // do the OTA check routine 
 
   char buffer [33];
-  sht30.read(false);
-  int r_millis = millis();
-  itoa (sht30.readStatus(),buffer,2);
-  Serial.printf("VBat  :%6.3fV\n" , (ReadVoltage(35) * 2.0));
-  Serial.printf("age   :%d ms\n"  , sht30.lastRead());
-  Serial.printf("mils  :%d ms\n"  , r_millis);
-  Serial.printf("Temp  :%6.3f°C\n", sht30.getTemperature());
-  Serial.printf("RHum  :%6.2f%%\n", sht30.getHumidity());
+  //sht30.read(false);
+  //int r_millis = millis();
+  //itoa (sht30.readStatus(),buffer,2);
+  //Serial.printf("VBat  :%6.3fV\n" , (DA.ReadVoltage(35) * 2.0));
+  //Serial.printf("age   :%d ms\n"  , sht30.lastRead());
+  //Serial.printf("mils  :%d ms\n"  , r_millis);
+  //Serial.printf("Temp  :%6.3f°C\n", sht30.getTemperature());
+  //Serial.printf("RHum  :%6.2f%%\n", sht30.getHumidity());
+  //DA.display_espD32_pins();
+  //DA.display_esp32_pins();
+  //DA.read_sensors();
+  sht30.read(true);         // default = true/fast       slow = false
+  float temp_c = sht30.getTemperature();
+  Serial.printf("Temperature: %f °C\n", temp_c);
+  float rh_pct = sht30.getHumidity();
+  Serial.printf("Humidity: %f %%\n", rh_pct);
 
+  dataM.pushData(mqtt_topic_temp_C, String(temp_c));
+  dataM.pushData(mqtt_topic_RH_pct, String(rh_pct));
   //dataM.MQTT_Send(topic, dataJ)
   delay(5000);
   //status:1000000000010000
